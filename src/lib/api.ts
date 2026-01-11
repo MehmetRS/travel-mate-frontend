@@ -15,6 +15,12 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
     headers.set('Content-Type', 'application/json');
   }
 
+  // Add auth token if available
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
   // Make the request
   const response = await fetch(url, {
     ...options,

@@ -1,4 +1,10 @@
 import '../styles/globals.css';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Travel Mate - Yolculuk Paylaşımı',
+  description: 'Güvenli ve ekonomik yolculuk paylaşım platformu',
+};
 
 export default function RootLayout({
   children,
@@ -6,29 +12,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <header style={{
-          backgroundColor: '#0070f3',
-          color: 'white',
-          padding: '15px 20px',
-          textAlign: 'center',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <h1 style={{ margin: 0, fontSize: '1.8rem' }}>Travel Mate</h1>
+    <html lang="tr" className="h-full">
+      <body className="flex flex-col min-h-full">
+        <header className="bg-blue-600 text-white py-4 px-5 text-center shadow-md">
+          <h1 className="text-2xl font-semibold m-0">Travel Mate</h1>
         </header>
 
-        <main style={{ minHeight: 'calc(100vh - 100px)' }}>
+        <main className="flex-grow">
           {children}
         </main>
 
-        <footer style={{
-          backgroundColor: '#f0f0f0',
-          padding: '15px 20px',
-          textAlign: 'center',
-          marginTop: 'auto'
-        }}>
-          <p style={{ margin: 0, color: '#666' }}>© {new Date().getFullYear()} Travel Mate. All rights reserved.</p>
+        <footer className="bg-gray-100 py-4 px-5 text-center mt-auto">
+          <p className="text-gray-600 m-0">
+            © {new Date().getFullYear()} Travel Mate. All rights reserved.
+          </p>
         </footer>
       </body>
     </html>
