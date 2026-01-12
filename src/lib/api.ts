@@ -1,4 +1,6 @@
-export async function apiFetch(path: string, options: RequestInit = {}): Promise<any> {
+import { ApiError, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError } from './api/errors';
+
+export async function apiFetch<T = any>(path: string, options: RequestInit = {}): Promise<T> {
   // Get the API base URL from environment variables
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,32 +18,80 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   }
 
   // Add auth token if available
-  const token = localStorage.getItem('accessToken');
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  // Make the request
-  const response = await fetch(url, {
+  try {
+    // Make the request
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      credentials: 'include', // Required for cookies if used
+    });
+
+    // Try to parse JSON response
+    let data;
+    const contentType = response.headers.get('content-type');
+    if (contentType?.includes('application/json')) {
+      data = await response.json();
+    } else {
+      throw new Error('Invalid response format');
+    }
+
+    // Handle error responses
+    if (!response.ok) {
+      switch (response.status) {
+        case 401:
+          throw new UnauthorizedError(data?.message);
+        case 403:
+          throw new ForbiddenError(data?.message);
+        case 404:
+          throw new NotFoundError(data?.message);
+        case 409:
+          throw new ConflictError(data?.message);
+        default:
+          throw new ApiError(
+            response.status,
+            data?.message || `HTTP error! status: ${response.status}`,
+            data
+          );
+      }
+    }
+
+    return data as T;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    // Handle network errors or other issues
+    if (error instanceof Error) {
+      throw new ApiError(500, error.message, error);
+    }
+
+    throw new ApiError(500, 'An unexpected error occurred', error);
+  }
+}
+
+// Helper methods for common HTTP methods
+export const get = <T>(path: string, options?: RequestInit) =>
+  apiFetch<T>(path, { ...options, method: 'GET' });
+
+export const post = <T>(path: string, data?: any, options?: RequestInit) =>
+  apiFetch<T>(path, {
     ...options,
-    headers,
+    method: 'POST',
+    body: JSON.stringify(data),
   });
 
-  // Parse JSON response if content type is JSON
-  let data;
-  try {
-    data = await response.json();
-  } catch (error) {
-    // If response is not JSON, throw a generic error
-    throw new Error(`Request failed with status ${response.status}`);
-  }
+export const put = <T>(path: string, data?: any, options?: RequestInit) =>
+  apiFetch<T>(path, {
+    ...options,
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
 
-  // Check for successful response
-  if (!response.ok) {
-    // Extract error message from response or use default
-    const errorMessage = data?.message || `HTTP error! status: ${response.status}`;
-    throw new Error(errorMessage);
-  }
-
-  return data;
-}
+export const del = <T>(path: string, options?: RequestInit) =>
+  apiFetch<T>(path, { ...options, method: 'DELETE' });

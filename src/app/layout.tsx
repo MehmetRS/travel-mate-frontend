@@ -1,5 +1,7 @@
 import '../styles/globals.css';
 import type { Metadata } from 'next';
+import { AuthProvider } from '@/contexts/auth';
+import ProtectedLayout from '@/components/layouts/ProtectedLayout';
 
 export const metadata: Metadata = {
   title: 'Travel Mate - Yolculuk Paylaşımı',
@@ -14,19 +16,23 @@ export default function RootLayout({
   return (
     <html lang="tr" className="h-full">
       <body className="flex flex-col min-h-full">
-        <header className="bg-blue-600 text-white py-4 px-5 text-center shadow-md">
-          <h1 className="text-2xl font-semibold m-0">Travel Mate</h1>
-        </header>
+        <AuthProvider>
+          <header className="bg-blue-600 text-white py-4 px-5 text-center shadow-md">
+            <h1 className="text-2xl font-semibold m-0">Travel Mate</h1>
+          </header>
 
-        <main className="flex-grow">
-          {children}
-        </main>
+          <main className="flex-grow">
+            <ProtectedLayout>
+              {children}
+            </ProtectedLayout>
+          </main>
 
-        <footer className="bg-gray-100 py-4 px-5 text-center mt-auto">
-          <p className="text-gray-600 m-0">
-            © {new Date().getFullYear()} Travel Mate. All rights reserved.
-          </p>
-        </footer>
+          <footer className="bg-gray-100 py-4 px-5 text-center mt-auto">
+            <p className="text-gray-600 m-0">
+              © {new Date().getFullYear()} Travel Mate. All rights reserved.
+            </p>
+          </footer>
+        </AuthProvider>
       </body>
     </html>
   );
