@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { register } from '@/lib/auth';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -12,15 +11,36 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRegister = async () => {
     setError(null);
     setIsLoading(true);
 
     try {
-      await register(email, password, name);
+      // Client-side fetch to the register endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+
+      // Store the access token in localStorage
+      localStorage.setItem('accessToken', data.accessToken);
+
+      // Redirect to dashboard page
       router.push('/dashboard');
+
     } catch (err) {
+      console.error('Registration failed:', err);
       setError(err instanceof Error ? err.message : 'Registration failed');
       setIsLoading(false);
     }
@@ -36,7 +56,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <div>
         <div style={{ marginBottom: '15px' }}>
           <label htmlFor="name" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
             Name:
@@ -81,8 +101,9 @@ export default function RegisterPage() {
         </div>
 
         <button
-          type="submit"
+          type="button"
           disabled={isLoading}
+          onClick={handleRegister}
           style={{
             width: '100%',
             padding: '10px',
@@ -96,7 +117,7 @@ export default function RegisterPage() {
         >
           {isLoading ? 'Registering...' : 'Register'}
         </button>
-      </form>
+      </div>
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <p>Already have an account? <a href="/login" style={{ color: '#0070f3' }}>Login</a></p>

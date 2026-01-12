@@ -1,30 +1,49 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/auth';
-import { ApiError } from '@/lib/api/errors';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     setError(null);
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      // No need to manually redirect - auth context handles this
+      // Client-side fetch to the login endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+
+      const data = await response.json();
+
+      // Store the access token in localStorage
+      localStorage.setItem('accessToken', data.accessToken);
+
+      // Redirect to trips page
+      router.push('/trips');
+
     } catch (err) {
       console.error('Login failed:', err);
       setError(
-        err instanceof ApiError 
-          ? err.message 
+        err instanceof Error
+          ? err.message
           : 'An unexpected error occurred. Please try again.'
       );
       setIsLoading(false);
@@ -47,7 +66,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -86,8 +105,9 @@ export default function LoginPage() {
 
             <div>
               <button
-                type="submit"
+                type="button"
                 disabled={isLoading}
+                onClick={handleLogin}
                 className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
                   isLoading
                     ? 'bg-blue-400 cursor-not-allowed'
@@ -97,7 +117,7 @@ export default function LoginPage() {
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </button>
             </div>
-          </form>
+          </div>
 
           <div className="mt-6">
             <div className="relative">

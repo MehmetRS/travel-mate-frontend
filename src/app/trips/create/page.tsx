@@ -70,8 +70,7 @@ export default function CreateTripPage() {
   };
 
   // Handle form submit
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError(null);
 
     if (!validateForm()) {
@@ -117,7 +116,7 @@ export default function CreateTripPage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Yeni Yolculuk Oluştur</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           {/* Origin */}
           <div>
             <label htmlFor="origin" className="block text-sm font-medium text-gray-700">
@@ -253,8 +252,9 @@ export default function CreateTripPage() {
           {/* Submit Button */}
           <div>
             <button
-              type="submit"
+              type="button"
               disabled={loading}
+              onClick={handleSubmit}
               className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
                 loading
                   ? 'bg-blue-400 cursor-not-allowed'
@@ -264,7 +264,7 @@ export default function CreateTripPage() {
               {loading ? 'Oluşturuluyor...' : 'Yolculuk Oluştur'}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
