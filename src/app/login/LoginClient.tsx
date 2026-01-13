@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { apiFetch } from '@/lib/api';
 
 export default function LoginClient() {
   const router = useRouter();
@@ -16,22 +17,11 @@ export default function LoginClient() {
     setIsLoading(true);
 
     try {
-      // Client-side fetch to the login endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      // Use apiFetch wrapper for proper auth headers and error handling
+      const data = await apiFetch<{ accessToken: string }>('/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email, password }),
-        credentials: 'include',
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
-
-      const data = await response.json();
 
       // Store the access token in localStorage
       localStorage.setItem('accessToken', data.accessToken);

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { TripFilters as TripFiltersType } from '@/lib/trip.types';
 

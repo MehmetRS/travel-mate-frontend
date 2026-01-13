@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Trip, TripFilters, TripSortOption } from '@/lib/trip.types';
 import { tripsApi } from '@/lib/api/trips';
