@@ -51,6 +51,8 @@ export const tripsApi = {
    * Public endpoint - no auth required
    */
   getById: async (id: string): Promise<Trip> => {
+    console.error("🔥 tripsApi.getById CALLED WITH:", id);
+    console.trace("STACK TRACE — tripsApi.getById");
     return get<Trip>(`/trips/${id}`);
   },
 

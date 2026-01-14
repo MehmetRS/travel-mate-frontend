@@ -7,6 +7,8 @@ export const chatApi = {
    * Requires authentication
    */
   getByTripId: async (tripId: string): Promise<ChatResponse> => {
+    console.error(" chatApi.getByTripId CALLED WITH:", tripId);
+    console.trace("STACK TRACE — chatApi.getByTripId");
     return get<ChatResponse>(`/trips/${tripId}/chat`);
   },
 
