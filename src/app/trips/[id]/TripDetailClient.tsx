@@ -195,7 +195,10 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
   const [bookingError, setBookingError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
     async function fetchTrip() {
       try {
