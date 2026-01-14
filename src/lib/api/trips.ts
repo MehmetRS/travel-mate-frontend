@@ -21,7 +21,7 @@ export const tripsApi = {
    */
   list: async (filters?: TripFilters, sort?: TripSortOption): Promise<Trip[]> => {
     const searchParams = new URLSearchParams();
-    
+
     if (filters) {
       if (filters.minPrice) searchParams.append('minPrice', filters.minPrice.toString());
       if (filters.maxPrice) searchParams.append('maxPrice', filters.maxPrice.toString());
@@ -29,15 +29,21 @@ export const tripsApi = {
       if (filters.verifiedOnly) searchParams.append('verifiedOnly', 'true');
       if (filters.minSeats) searchParams.append('minSeats', filters.minSeats.toString());
     }
-    
+
     if (sort) {
       searchParams.append('sort', sort);
     }
 
     const queryString = searchParams.toString();
     const url = `/trips${queryString ? `?${queryString}` : ''}`;
-    
-    return get<Trip[]>(url);
+
+    const data = await get<Trip[]>(url);
+
+    // Normalize response to ensure every trip has a valid id
+    return data.map((trip: any) => ({
+      ...trip,
+      id: trip.id,
+    }));
   },
 
   /**
