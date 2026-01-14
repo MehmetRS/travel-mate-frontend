@@ -13,14 +13,9 @@ export type Trip = {
     name: string;
     rating: number;
     isVerified: boolean;
-    vehicle: {
-      vehicleType: string;
-      brand: string;
-      model: string;
-      seats: number;
-    } | null;
+    vehicle?: any;
   };
-  createdAt?: string;
+  createdAt: string;
 };
 
 // Filter types for client-side filtering
