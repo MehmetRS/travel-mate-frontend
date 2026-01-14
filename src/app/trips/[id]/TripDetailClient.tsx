@@ -190,6 +190,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
   const [bookingSeats, setBookingSeats] = useState(1);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
@@ -216,6 +217,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
         setTrip(null);
       } finally {
         setLoading(false);
+        setHasFetched(true);
       }
     }
 
@@ -270,7 +272,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
     );
   }
 
-  if (!loading && (error || !trip)) {
+  if (hasFetched && !loading && (error || !trip)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
