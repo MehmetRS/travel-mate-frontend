@@ -163,7 +163,7 @@ function TripDetailContent({
           </div>
         )}
         {/* Chat Section */}
-        {!isFull && (
+        {!isFull && trip?.id && (
           <div className="mt-6">
             <h2 className="text-lg font-semibold mb-4">Sürücü ile İletişim</h2>
             <ChatPanel tripId={trip.id} />

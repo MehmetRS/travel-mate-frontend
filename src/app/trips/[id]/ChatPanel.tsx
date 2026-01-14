@@ -31,6 +31,8 @@ export default function ChatPanel({ tripId }: ChatPanelProps) {
 
   // Fetch chat data
   useEffect(() => {
+    if (!tripId) return;
+
     async function fetchChat() {
       try {
         setLoading(true);
@@ -44,8 +46,8 @@ export default function ChatPanel({ tripId }: ChatPanelProps) {
           return;
         }
         setError(
-          err instanceof ApiError 
-            ? err.message 
+          err instanceof ApiError
+            ? err.message
             : 'Sohbet yüklenirken bir hata oluştu'
         );
       } finally {
