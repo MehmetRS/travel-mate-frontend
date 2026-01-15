@@ -191,6 +191,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasFetched, setHasFetched] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [bookingSeats, setBookingSeats] = useState(1);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
@@ -205,16 +206,20 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       try {
         setLoading(true);
         setError(null);
+        setNotFound(false);
+
         const data = await tripsApi.getById(id);
         setTrip(data);
-      } catch (err) {
-        console.error('Failed to fetch trip:', err);
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : 'Yolculuk bilgileri yüklenirken bir hata oluştu'
-        );
-        setTrip(null);
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          setNotFound(true);
+        } else {
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : 'Yolculuk bilgileri yüklenirken bir hata oluştu'
+          );
+        }
       } finally {
         setLoading(false);
         setHasFetched(true);
@@ -272,18 +277,16 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
     );
   }
 
-  if (hasFetched && !loading && (error || !trip)) {
+  if (notFound) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-            {error || 'Yolculuk Bulunamadı'}
+            Yolculuk Bulunamadı
           </h2>
-          {!error && (
-            <p className="text-gray-600">
-              Bu yolculuk mevcut değil veya kaldırılmış olabilir.
-            </p>
-          )}
+          <p className="text-gray-600">
+            Bu yolculuk mevcut değil veya kaldırılmış olabilir.
+          </p>
         </div>
       </div>
     );
