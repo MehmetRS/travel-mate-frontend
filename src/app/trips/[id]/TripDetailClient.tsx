@@ -186,6 +186,8 @@ interface TripDetailClientProps {
 }
 
 export default function TripDetailClient({ id }: TripDetailClientProps) {
+  console.log('[TripDetailClient] render', { id });
+
   const router = useRouter();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,23 +199,30 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
   const [bookingError, setBookingError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('[TripDetailClient] useEffect triggered', { id });
+
     if (!id) {
+      console.warn('[TripDetailClient] id is missing, aborting fetch');
       setLoading(false);
       return;
     }
 
     async function fetchTrip() {
+      console.log('[TripDetailClient] fetchTrip START', id);
+
       try {
         setLoading(true);
         setError(null);
         setNotFound(false);
 
+        console.log('[TripDetailClient] calling tripsApi.getById');
         const data = await tripsApi.getById(id);
-        if (!data || !data.id) {
-          throw new ApiError(404, 'Trip not found');
-        }
+
+        console.log('[TripDetailClient] fetchTrip SUCCESS', data);
         setTrip(data);
       } catch (err: unknown) {
+        console.error('[TripDetailClient] fetchTrip ERROR', err);
+
         if (err instanceof ApiError && err.status === 404) {
           setNotFound(true);
           return;
@@ -225,6 +234,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
             : 'Yolculuk bilgileri yüklenirken bir hata oluştu'
         );
       } finally {
+        console.log('[TripDetailClient] fetchTrip FINALLY');
         setLoading(false);
         setHasFetched(true);
       }
