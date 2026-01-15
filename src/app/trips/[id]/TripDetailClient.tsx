@@ -209,17 +209,21 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
         setNotFound(false);
 
         const data = await tripsApi.getById(id);
-        setTrip(data);
-      } catch (err: any) {
-        if (err?.response?.status === 404) {
-          setNotFound(true);
-        } else {
-          setError(
-            err instanceof ApiError
-              ? err.message
-              : 'Yolculuk bilgileri yüklenirken bir hata oluştu'
-          );
+        if (!data || !data.id) {
+          throw new ApiError(404, 'Trip not found');
         }
+        setTrip(data);
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 404) {
+          setNotFound(true);
+          return;
+        }
+
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : 'Yolculuk bilgileri yüklenirken bir hata oluştu'
+        );
       } finally {
         setLoading(false);
         setHasFetched(true);
