@@ -296,9 +296,13 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
     );
   }
 
+  if (!trip) {
+    return null;
+  }
+
   return (
     <TripDetailContent
-      trip={trip!}
+      trip={trip}
       onBook={handleBookTrip}
       isBooking={isBooking}
       bookingError={bookingError}
