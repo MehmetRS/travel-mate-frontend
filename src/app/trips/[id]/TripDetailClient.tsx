@@ -297,7 +297,11 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
   }
 
   if (!trip) {
-    return null;
+    return (
+      <div className="container mx-auto px-4 py-12 text-center text-gray-500">
+        Yolculuk bilgileri yükleniyor...
+      </div>
+    );
   }
 
   return (
