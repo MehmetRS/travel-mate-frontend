@@ -186,6 +186,8 @@ interface TripDetailClientProps {
 }
 
 export default function TripDetailClient({ id }: TripDetailClientProps) {
+  console.log('🔥 TripDetailClient MOUNTED, id =', id);
+
   const router = useRouter();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,40 +199,38 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
   const [bookingError, setBookingError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+    console.log(' PROOF EFFECT RUNNING');
+  }, []);
 
-    async function fetchTrip() {
+  useEffect(() => {
+    if (!id) return;
+
+    let cancelled = false;
+
+    const fetchTrip = async () => {
       try {
         setLoading(true);
-        setError(null);
-        setNotFound(false);
-
         const data = await tripsApi.getById(id);
-
-        if (!data || !data.id) {
-          throw new ApiError(404, 'Trip not found');
+        if (!cancelled) {
+          setTrip(data);
+          setNotFound(false);
         }
-        setTrip(data);
-      } catch (err: unknown) {
-        if (err instanceof ApiError && err.status === 404) {
+      } catch (err) {
+        if (!cancelled) {
           setNotFound(true);
-        } else {
-          setError(
-            err instanceof ApiError
-              ? err.message
-              : 'Yolculuk bilgileri yüklenirken bir hata oluştu'
-          );
         }
       } finally {
-        setLoading(false);
-        setHasFetched(true);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-    }
+    };
 
     fetchTrip();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const handleBookTrip = async () => {
