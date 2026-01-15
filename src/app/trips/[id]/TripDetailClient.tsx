@@ -186,7 +186,7 @@ interface TripDetailClientProps {
 }
 
 export default function TripDetailClient({ id }: TripDetailClientProps) {
-  console.log('🔥 TripDetailClient MOUNTED, id =', id);
+  console.log(' TripDetailClient MOUNTED, id =', id);
 
   const router = useRouter();
   const [trip, setTrip] = useState<Trip | null>(null);
