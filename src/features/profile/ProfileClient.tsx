@@ -83,7 +83,7 @@ export default function ProfileClient() {
     );
   }
 
-  // Show error state
+  // Show error state - only after failed retry, not on first load
   if (error) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -116,6 +116,10 @@ export default function ProfileClient() {
   if (!isAuthenticated || !user || !profile) {
     return null;
   }
+
+  // Handle missing_vehicle query param
+  const searchParams = new URLSearchParams(window.location.search);
+  const isMissingVehicle = searchParams.get('reason') === 'missing_vehicle';
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -172,6 +176,22 @@ export default function ProfileClient() {
           </button>
         </div>
       </div>
+
+      {/* Friendly info banner for missing_vehicle case */}
+      {isMissingVehicle && (
+        <div className="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <TruckIcon className="h-5 w-5 text-blue-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-blue-700">
+                You need to add a vehicle before creating a trip
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Success message */}
       {successMessage && (

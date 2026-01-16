@@ -44,16 +44,17 @@ export function useTrip(id: string): UseTripReturn {
   const [state, setState] = useState<TripState>({ status: 'idle' });
 
   useEffect(() => {
-    if (!id) {
-      setState({ status: 'error', error: 'Trip ID is required' });
-      return;
-    }
+    // id validation belongs ONLY to route layer
+    // TripDetailClient should assume id is always valid
+    if (!id) return;
 
     fetchTrip();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchTrip = async () => {
+    // id validation belongs ONLY to route layer
+    // TripDetailClient should assume id is always valid
     if (!id) return;
 
     setState({ status: 'loading' });

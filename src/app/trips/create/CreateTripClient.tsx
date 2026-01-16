@@ -280,7 +280,7 @@ export default function CreateTripClient() {
                     <div className="ml-3">
                       <p className="text-sm text-yellow-700">
                         Yolculuk oluşturmak için en az bir araca ihtiyacınız var.{' '}
-                        <Link href="/profile" className="font-medium text-blue-600 hover:text-blue-500 underline">
+                        <Link href="/profile?reason=missing_vehicle" className="font-medium text-blue-600 hover:text-blue-500 underline">
                           Profil sayfama git
                         </Link>
                       </p>
