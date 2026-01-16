@@ -1,11 +1,11 @@
 /**
  * Auth API
- * 
+
  * All auth-related API calls.
- * Aligned with backend /auth endpoints.
+ * Aligned with backend endpoints.
  */
 
-import { get, post } from '@/lib/api/api-client';
+import { apiClient } from '@/lib/api/api-client';
 import type {
   LoginRequest,
   LoginResponse,
@@ -15,26 +15,36 @@ import type {
 
 export const authApi = {
   /**
-   * POST /auth/login
+   * POST /login
    * Public endpoint
    */
   login: (credentials: LoginRequest): Promise<LoginResponse> => {
-    return post<LoginResponse>('/auth/login', credentials, { skipAuth: true });
+    return apiClient('/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+      skipAuth: true
+    });
   },
 
   /**
-   * POST /auth/register
+   * POST /register
    * Public endpoint
    */
   register: (data: RegisterRequest): Promise<LoginResponse> => {
-    return post<LoginResponse>('/auth/register', data, { skipAuth: true });
+    return apiClient('/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      skipAuth: true
+    });
   },
 
   /**
-   * GET /auth/me
+   * GET /me
    * Auth required - validates current session
    */
   me: (): Promise<MeResponse> => {
-    return get<MeResponse>('/auth/me');
+    return apiClient('/me', {
+      method: 'GET'
+    });
   },
 };

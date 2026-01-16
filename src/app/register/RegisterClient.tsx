@@ -18,7 +18,7 @@ export default function RegisterClient() {
     setIsLoading(true);
 
     try {
-      // useAuth handles: POST /auth/register, redirect to /login (NO auto-login)
+      // useAuth handles: POST /register, redirect to /login (NO auto-login)
       await register(email, name, password);
     } catch (err) {
       console.error('Registration failed:', err);

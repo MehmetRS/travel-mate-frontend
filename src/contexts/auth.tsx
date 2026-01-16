@@ -47,8 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Verify token and get user info
-    get<User>('/auth/me')
+  // Verify token and get user info
+    get<User>('/me')
       .then(user => {
         console.log('Session restored', user);
         setAuth({ user, isAuthenticated: true, isLoading: false });
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await post<LoginResponse>('/auth/login', {
+      const response = await post<LoginResponse>('/login', {
         email,
         password,
       });

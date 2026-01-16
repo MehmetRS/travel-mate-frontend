@@ -17,7 +17,7 @@ export default function LoginClient() {
     setIsLoading(true);
 
     try {
-      // useAuth handles: POST /auth/login, save token, GET /me, redirect
+      // useAuth handles: POST /login, save token, GET /me, redirect
       await login(email, password);
     } catch (err) {
       console.error('Login failed:', err);

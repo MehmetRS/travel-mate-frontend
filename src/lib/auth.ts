@@ -16,7 +16,7 @@ interface LoginData {
 }
 
 export async function register(email: string, password: string, name: string): Promise<AuthResponse> {
-  const response = await post<AuthResponse>('/auth/register', {
+  const response = await post<AuthResponse>('/register', {
     email,
     password,
     name,
@@ -29,7 +29,7 @@ export async function register(email: string, password: string, name: string): P
 }
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  const response = await post<AuthResponse>('/auth/login', {
+  const response = await post<AuthResponse>('/login', {
     email,
     password,
   });
