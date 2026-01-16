@@ -1,5 +1,5 @@
 import { Trip, TripFilters, TripSortOption } from '../trip.types';
-import { get, post } from './client';
+import { get, post } from './api-client';
 
 export interface CreateTripRequest {
   origin: string;

@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { post } from './api/api-client';
 
 interface AuthResponse {
   accessToken: string;
@@ -16,9 +16,10 @@ interface LoginData {
 }
 
 export async function register(email: string, password: string, name: string): Promise<AuthResponse> {
-  const response = await apiFetch('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ email, password, name }),
+  const response = await post<AuthResponse>('/auth/register', {
+    email,
+    password,
+    name,
   });
 
   // Store the access token in localStorage
@@ -28,9 +29,9 @@ export async function register(email: string, password: string, name: string): P
 }
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  const response = await apiFetch('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
+  const response = await post<AuthResponse>('/auth/login', {
+    email,
+    password,
   });
 
   // Store the access token in localStorage

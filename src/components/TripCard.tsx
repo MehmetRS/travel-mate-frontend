@@ -1,9 +1,9 @@
-import { Trip } from '@/lib/trip.types';
+import { TripResponseDto } from '@/lib/types/backend-contracts';
 import { StarIcon, CheckBadgeIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
 
 interface TripCardProps {
-  trip: Trip;
+  trip: TripResponseDto;
 }
 
 export default function TripCard({ trip }: TripCardProps) {

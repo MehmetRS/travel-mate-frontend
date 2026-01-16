@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAccessToken } from '@/lib/auth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { chatApi } from '@/lib/api/chat';
 import { ChatResponse } from '@/types/chat';
 import { ApiError, UnauthorizedError } from '@/lib/api/errors';
@@ -16,18 +16,18 @@ interface ChatPanelProps {
 
 export default function ChatPanel({ tripId }: ChatPanelProps) {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chatData, setChatData] = useState<ChatResponse | null>(null);
 
-  // Check authentication and handle token expiry
+  // Check authentication
   useEffect(() => {
-    const token = getAccessToken();
-    if (!token) {
+    if (!authLoading && !isAuthenticated) {
       router.push('/login');
       return;
     }
-  }, [router]);
+  }, [authLoading, isAuthenticated, router]);
 
   // Fetch chat data
   useEffect(() => {

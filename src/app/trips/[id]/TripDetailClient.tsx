@@ -1,20 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Trip } from '@/lib/trip.types';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { StarIcon, CheckBadgeIcon, ClockIcon, MapPinIcon } from '@heroicons/react/24/solid';
+import { useTrip } from '@/features/trips/hooks/useTrip';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { tripsApi } from '@/lib/api/trips';
 import { ApiError, UnauthorizedError, ForbiddenError, ConflictError } from '@/lib/api/errors';
-import { useRouter } from 'next/navigation';
 import ChatPanel from './ChatPanel';
+import type { TripDetailResponseDto } from '@/lib/types/backend-contracts';
 
 interface TripDetailContentProps {
-  trip: Trip;
+  trip: TripDetailResponseDto;
   onBook: () => Promise<void>;
   isBooking: boolean;
   bookingError: string | null;
   bookingSeats: number;
   onBookingSeatsChange: (seats: number) => void;
+  isAuthenticated: boolean;
 }
 
 function TripDetailContent({
@@ -23,7 +26,8 @@ function TripDetailContent({
   isBooking,
   bookingError,
   bookingSeats,
-  onBookingSeatsChange
+  onBookingSeatsChange,
+  isAuthenticated
 }: TripDetailContentProps) {
   const isFull = trip.isFull;
 
@@ -122,8 +126,8 @@ function TripDetailContent({
           </div>
         </div>
 
-        {/* Booking Section */}
-        {!isFull && (
+        {/* Booking Section - Only show if authenticated */}
+        {!isFull && isAuthenticated && (
           <div className="mt-6 rounded-lg border p-6 bg-white">
             <h2 className="text-lg font-semibold mb-4">Rezervasyon</h2>
             <div className="flex items-center gap-4 mb-4">
@@ -162,13 +166,30 @@ function TripDetailContent({
             )}
           </div>
         )}
-        {/* Chat Section */}
-        {!isFull && trip?.id && (
+
+        {/* Login Prompt - If not authenticated */}
+        {!isFull && !isAuthenticated && (
+          <div className="mt-6 rounded-lg border p-6 bg-blue-50 border-blue-200 text-center">
+            <p className="text-gray-700 mb-3">
+              Rezervasyon yapmak için giriş yapmalısınız.
+            </p>
+            <a
+              href={`/login?returnUrl=/trips/${trip.id}`}
+              className="inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+            >
+              Giriş Yap
+            </a>
+          </div>
+        )}
+
+        {/* Chat Section - Only if authenticated */}
+        {!isFull && isAuthenticated && (
           <div className="mt-6">
             <h2 className="text-lg font-semibold mb-4">Sürücü ile İletişim</h2>
             <ChatPanel tripId={trip.id} />
           </div>
         )}
+
         {isFull && (
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
@@ -186,54 +207,20 @@ interface TripDetailClientProps {
 }
 
 export default function TripDetailClient({ id }: TripDetailClientProps) {
-  console.log(' TripDetailClient MOUNTED, id =', id);
-
   const router = useRouter();
-  const [trip, setTrip] = useState<Trip | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hasFetched, setHasFetched] = useState(false);
-  const [notFound, setNotFound] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const { isLoading, isNotFound, isError, trip, error, refetch } = useTrip(id);
+  
   const [bookingSeats, setBookingSeats] = useState(1);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
-  useEffect(() => {
-    console.log(' PROOF EFFECT RUNNING');
-  }, []);
-
-  useEffect(() => {
-    if (!id) return;
-
-    let cancelled = false;
-
-    const fetchTrip = async () => {
-      try {
-        setLoading(true);
-        const data = await tripsApi.getById(id);
-        if (!cancelled) {
-          setTrip(data);
-          setNotFound(false);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setNotFound(true);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchTrip();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
-
   const handleBookTrip = async () => {
+    if (!isAuthenticated) {
+      router.push(`/login?returnUrl=/trips/${id}`);
+      return;
+    }
+
     try {
       setIsBooking(true);
       setBookingError(null);
@@ -241,15 +228,14 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       await tripsApi.book(id, { seats: bookingSeats });
 
       // Refresh trip data after booking
-      const updatedTrip = await tripsApi.getById(id);
-      setTrip(updatedTrip);
+      await refetch();
 
     } catch (err) {
       console.error('Failed to book trip:', err);
 
       if (err instanceof UnauthorizedError) {
         // Redirect to login if not authenticated
-        router.push('/login');
+        router.push(`/login?returnUrl=/trips/${id}`);
         return;
       }
 
@@ -269,7 +255,8 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
     }
   };
 
-  if (loading) {
+  // Loading State
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse">
@@ -281,7 +268,8 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
     );
   }
 
-  if (notFound) {
+  // Not Found State
+  if (isNotFound) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
@@ -296,12 +284,21 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
     );
   }
 
-  if (!trip) {
+  // Error State
+  if (isError) {
     return (
-      <div className="container mx-auto px-4 py-12 text-center text-gray-500">
-        Yolculuk bilgileri yükleniyor...
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12 text-red-500">
+          <h2 className="text-2xl font-semibold mb-2">Hata</h2>
+          <p>{error}</p>
+        </div>
       </div>
     );
+  }
+
+  // Success State
+  if (!trip) {
+    return null;
   }
 
   return (
@@ -312,6 +309,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       bookingError={bookingError}
       bookingSeats={bookingSeats}
       onBookingSeatsChange={setBookingSeats}
+      isAuthenticated={isAuthenticated}
     />
   );
 }

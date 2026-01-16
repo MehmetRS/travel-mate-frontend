@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { apiFetch } from '@/lib/api';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { isApiError } from '@/lib/api/api-errors';
 
 export default function LoginClient() {
-  const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -17,25 +17,14 @@ export default function LoginClient() {
     setIsLoading(true);
 
     try {
-      // Use apiFetch wrapper for proper auth headers and error handling
-      const data = await apiFetch<{ accessToken: string }>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
-
-      // Store the access token in localStorage
-      localStorage.setItem('accessToken', data.accessToken);
-
-      // Redirect to trips page
-      router.push('/trips');
-
+      // useAuth handles: POST /auth/login, save token, GET /me, redirect
+      await login(email, password);
     } catch (err) {
       console.error('Login failed:', err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'An unexpected error occurred. Please try again.'
-      );
+      const message = isApiError(err)
+        ? err.message
+        : 'An unexpected error occurred. Please try again.';
+      setError(message);
       setIsLoading(false);
     }
   };

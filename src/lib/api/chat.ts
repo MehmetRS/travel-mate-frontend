@@ -1,5 +1,5 @@
 import { ChatResponse, CreateMessageRequest } from '../../types/chat';
-import { get, post } from './client';
+import { get, post } from './api-client';
 
 export const chatApi = {
   /**

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import { get, post } from '@/lib/api/api-client';
 
 interface User {
   id: string;
@@ -41,14 +41,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Restore auth state on mount
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    
+
     if (!token) {
       setAuth({ user: null, isAuthenticated: false, isLoading: false });
       return;
     }
 
     // Verify token and get user info
-    apiFetch('/auth/me')
+    get<User>('/auth/me')
       .then(user => {
         console.log('Session restored', user);
         setAuth({ user, isAuthenticated: true, isLoading: false });
@@ -62,9 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await apiFetch<LoginResponse>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
+      const response = await post<LoginResponse>('/auth/login', {
+        email,
+        password,
       });
 
       console.log('LOGIN SUCCESS', response);

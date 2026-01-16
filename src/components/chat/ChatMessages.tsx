@@ -1,16 +1,16 @@
 'use client';
 
 import { Message } from '@/types/chat';
-import { getAccessToken } from '@/lib/auth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface ChatMessagesProps {
   messages: Message[];
 }
 
 export default function ChatMessages({ messages }: ChatMessagesProps) {
-  // Get current user ID from token to determine message alignment
-  const token = getAccessToken();
-  const currentUserId = token ? JSON.parse(atob(token.split('.')[1])).sub : null;
+  // Get current user ID from auth context
+  const { user } = useAuth();
+  const currentUserId = user?.id || null;
 
   return (
     <div className="flex flex-col space-y-4 p-4">

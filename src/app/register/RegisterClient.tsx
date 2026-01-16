@@ -1,37 +1,31 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api';
+import Link from 'next/link';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { isApiError } from '@/lib/api/api-errors';
 
 export default function RegisterClient() {
+  const { register } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleRegister = async () => {
     setError(null);
     setIsLoading(true);
 
     try {
-      // Use apiFetch wrapper for proper auth headers and error handling
-      const data = await apiFetch<{ accessToken: string }>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, name }),
-      });
-
-      // Store the access token in localStorage
-      localStorage.setItem('accessToken', data.accessToken);
-
-      // Redirect to dashboard page
-      router.push('/dashboard');
-
+      // useAuth handles: POST /auth/register, redirect to /login (NO auto-login)
+      await register(email, name, password);
     } catch (err) {
       console.error('Registration failed:', err);
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      const message = isApiError(err)
+        ? err.message
+        : 'Registration failed. Please try again.';
+      setError(message);
       setIsLoading(false);
     }
   };
