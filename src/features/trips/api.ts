@@ -16,6 +16,10 @@ export interface TripsSearchParams {
   origin?: string;
   destination?: string;
   date?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minSeats?: number;
+  availableOnly?: boolean;
 }
 
 export const tripsApi = {
@@ -28,10 +32,14 @@ export const tripsApi = {
     if (params?.origin) query.set('origin', params.origin);
     if (params?.destination) query.set('destination', params.destination);
     if (params?.date) query.set('date', params.date);
-    
+    if (params?.minPrice) query.set('minPrice', params.minPrice.toString());
+    if (params?.maxPrice) query.set('maxPrice', params.maxPrice.toString());
+    if (params?.minSeats) query.set('minSeats', params.minSeats.toString());
+    if (params?.availableOnly) query.set('availableOnly', params.availableOnly.toString());
+
     const queryString = query.toString();
     const path = queryString ? `/trips?${queryString}` : '/trips';
-    
+
     return get<TripResponseDto[]>(path, { skipAuth: true });
   },
 

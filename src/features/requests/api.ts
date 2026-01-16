@@ -1,6 +1,6 @@
 /**
  * Requests API
- * 
+ *
  * All trip request-related API calls (NEW FEATURE).
  * Aligned with backend /trips/:tripId/requests and /requests endpoints.
  */
@@ -30,6 +30,14 @@ export const requestsApi = {
    */
   getForTrip: (tripId: string): Promise<TripRequestResponseDto[]> => {
     return get<TripRequestResponseDto[]>(`/trips/${tripId}/requests`);
+  },
+
+  /**
+   * GET /requests
+   * AUTH REQUIRED - Get all requests for current user (as trip owner)
+   */
+  getAll: (): Promise<TripRequestResponseDto[]> => {
+    return get<TripRequestResponseDto[]>(`/requests`);
   },
 
   /**

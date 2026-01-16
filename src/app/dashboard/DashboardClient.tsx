@@ -3,57 +3,257 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useDashboard } from '@/features/dashboard/hooks/useDashboard';
+import { StarIcon, CheckBadgeIcon, ArrowRightIcon, UserIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/solid';
+import Link from 'next/link';
+import TripCard from '@/components/TripCard';
 
 export default function DashboardClient() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { profile, upcomingTrips, pastTrips, isLoading, error, refetch } = useDashboard();
 
   useEffect(() => {
     // Redirect if not authenticated
-    if (!isLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [authLoading, isAuthenticated, router]);
 
   // Show loading state
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
-      <div style={{ maxWidth: '600px', margin: '50px auto', padding: '20px', textAlign: 'center' }}>
-        <p>Loading...</p>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="animate-pulse">
+          {/* Header skeleton */}
+          <div className="h-8 bg-gray-200 rounded mb-8"></div>
+
+          {/* Profile section skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-gray-100 p-6 rounded-lg">
+              <div className="h-6 bg-gray-200 rounded mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded"></div>
+            </div>
+
+            <div className="bg-gray-100 p-6 rounded-lg">
+              <div className="h-6 bg-gray-200 rounded mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded"></div>
+            </div>
+
+            <div className="bg-gray-100 p-6 rounded-lg">
+              <div className="h-6 bg-gray-200 rounded mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+
+          {/* Trips sections skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <div className="h-6 bg-gray-200 rounded mb-4"></div>
+              <div className="space-y-4">
+                <div className="h-20 bg-gray-100 rounded"></div>
+                <div className="h-20 bg-gray-100 rounded"></div>
+              </div>
+            </div>
+
+            <div>
+              <div className="h-6 bg-gray-200 rounded mb-4"></div>
+              <div className="space-y-4">
+                <div className="h-20 bg-gray-100 rounded"></div>
+                <div className="h-20 bg-gray-100 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <button
+            onClick={refetch}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   // Don't render content until authenticated
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated || !user || !profile) {
     return null;
   }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '50px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '20px', color: '#0070f3' }}>Dashboard</h1>
-
-      <div style={{ backgroundColor: '#f0f8ff', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-        <h2 style={{ color: '#0070f3', marginBottom: '10px' }}>Welcome, {user.email}!</h2>
-        <p style={{ marginBottom: '15px' }}>You have successfully logged in to your account.</p>
-        <p>This is your dashboard where you can manage your travel plans and trips.</p>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <button
           onClick={logout}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#ff4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '16px'
-          }}
+          className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
         >
           Logout
         </button>
+      </div>
+
+      {/* Profile Summary Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* User Info */}
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <UserIcon className="w-6 h-6 mr-2 text-blue-500" />
+            Profile Summary
+          </h2>
+
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-gray-500">Name</p>
+              <p className="font-medium">{profile.name || 'Not set'}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="font-medium">{user.email}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Rating</p>
+              <div className="flex items-center">
+                <StarIcon className="w-5 h-5 text-yellow-400 mr-1" />
+                <span className="font-medium">{profile.rating.toFixed(1)}</span>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Vehicles</p>
+              <p className="font-medium">{profile.vehiclesCount} registered</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <ArrowRightIcon className="w-6 h-6 mr-2 text-blue-500" />
+            Quick Actions
+          </h2>
+
+          <div className="space-y-3">
+            <Link
+              href="/trips"
+              className="block w-full text-center px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+            >
+              Search Trips
+            </Link>
+
+            <Link
+              href="/trips/create"
+              className="block w-full text-center px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors"
+            >
+              Create Trip
+            </Link>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <CalendarIcon className="w-6 h-6 mr-2 text-blue-500" />
+            Trip Stats
+          </h2>
+
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-gray-500">Upcoming Trips</p>
+              <p className="text-2xl font-bold text-blue-600">{upcomingTrips.length}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Past Trips</p>
+              <p className="text-2xl font-bold text-green-600">{pastTrips.length}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trips Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Upcoming Trips */}
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <ClockIcon className="w-6 h-6 mr-2 text-blue-500" />
+            Upcoming Trips
+          </h2>
+
+          {upcomingTrips.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">No upcoming trips found</p>
+              <Link
+                href="/trips"
+                className="text-blue-500 hover:text-blue-600 underline"
+              >
+                Search for trips
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {upcomingTrips.map(trip => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Past Trips */}
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <CalendarIcon className="w-6 h-6 mr-2 text-green-500" />
+            Past Trips
+          </h2>
+
+          {pastTrips.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">No past trips found</p>
+              <Link
+                href="/trips"
+                className="text-blue-500 hover:text-blue-600 underline"
+              >
+                Search for trips
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {pastTrips.map(trip => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

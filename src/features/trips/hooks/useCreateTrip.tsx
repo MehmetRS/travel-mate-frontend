@@ -5,13 +5,15 @@
  * Implements state management for create operations
  *
  * AUTH REQUIRED - only authenticated users can create trips
+ * VEHICLE REQUIRED - user must have at least one vehicle
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { tripsApi } from '../api';
-import type { CreateTripDto } from '@/lib/types/backend-contracts';
+import { profileApi } from '@/features/profile/api';
+import type { CreateTripDto, VehicleDto } from '@/lib/types/backend-contracts';
 import { isApiError } from '@/lib/api/api-errors';
 
 // ============================================================================
@@ -32,6 +34,10 @@ interface UseCreateTripReturn {
   isSuccess: boolean;
   isError: boolean;
   error: string | null;
+  vehicles: VehicleDto[];
+  isLoadingVehicles: boolean;
+  vehiclesError: string | null;
+  refetchVehicles: () => Promise<void>;
 }
 
 // ============================================================================
@@ -40,6 +46,28 @@ interface UseCreateTripReturn {
 
 export function useCreateTrip(): UseCreateTripReturn {
   const [state, setState] = useState<CreateTripState>({ status: 'idle' });
+  const [vehicles, setVehicles] = useState<VehicleDto[]>([]);
+  const [isLoadingVehicles, setIsLoadingVehicles] = useState(true);
+  const [vehiclesError, setVehiclesError] = useState<string | null>(null);
+
+  // Fetch vehicles on mount
+  const fetchVehicles = async () => {
+    try {
+      setIsLoadingVehicles(true);
+      setVehiclesError(null);
+      const data = await profileApi.getVehicles();
+      setVehicles(data);
+    } catch (error) {
+      console.error('Failed to fetch vehicles:', error);
+      setVehiclesError('Failed to load vehicles. Please try again.');
+    } finally {
+      setIsLoadingVehicles(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
 
   const createTrip = async (data: CreateTripDto) => {
     setState({ status: 'loading' });
@@ -74,5 +102,9 @@ export function useCreateTrip(): UseCreateTripReturn {
     isSuccess,
     isError,
     error,
+    vehicles,
+    isLoadingVehicles,
+    vehiclesError,
+    refetchVehicles: fetchVehicles,
   };
 }

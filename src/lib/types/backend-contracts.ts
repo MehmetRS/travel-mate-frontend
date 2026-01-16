@@ -40,10 +40,22 @@ export interface MeResponse {
 // ============================================================================
 
 export interface VehicleDto {
+  id: string;
   vehicleType: string;
   brand: string;
   model: string;
   seats: number;
+  plate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateVehicleDto {
+  vehicleType: string;
+  brand: string;
+  model: string;
+  seats: number;
+  plate?: string | null;
 }
 
 export interface DriverDto {

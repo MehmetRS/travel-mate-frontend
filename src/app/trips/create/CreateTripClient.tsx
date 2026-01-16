@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useCreateTrip } from '@/features/trips/hooks/useCreateTrip';
 import type { CreateTripDto } from '@/lib/types/backend-contracts';
+import Link from 'next/link';
 
 export default function CreateTripClient() {
   const router = useRouter();
@@ -15,6 +16,10 @@ export default function CreateTripClient() {
     isSuccess,
     error,
     reset,
+    vehicles,
+    isLoadingVehicles,
+    vehiclesError,
+    refetchVehicles,
   } = useCreateTrip();
 
   // Form state
@@ -25,6 +30,7 @@ export default function CreateTripClient() {
     price: '',
     availableSeats: '',
     description: '',
+    vehicleId: '',
   });
 
   // Form validation errors
@@ -81,6 +87,10 @@ export default function CreateTripClient() {
       errors.availableSeats = 'Geçerli bir koltuk sayısı girin';
     }
 
+    if (!formData.vehicleId) {
+      errors.vehicleId = 'Araç seçimi zorunlu';
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -102,6 +112,7 @@ export default function CreateTripClient() {
         price: Number(formData.price),
         availableSeats: Number(formData.availableSeats),
         description: formData.description || undefined,
+        vehicleId: formData.vehicleId,
       };
 
       await createTrip(createData);
@@ -112,7 +123,7 @@ export default function CreateTripClient() {
   };
 
   // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     // Clear validation error when user starts typing
@@ -121,8 +132,8 @@ export default function CreateTripClient() {
     }
   };
 
-  // Show loading while checking auth
-  if (authLoading) {
+  // Show loading while checking auth or vehicles
+  if (authLoading || isLoadingVehicles) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
@@ -249,6 +260,56 @@ export default function CreateTripClient() {
             />
             {validationErrors.availableSeats && (
               <p className="mt-1 text-sm text-red-600">{validationErrors.availableSeats}</p>
+            )}
+          </div>
+
+          {/* Vehicle Selection */}
+          <div>
+            <label htmlFor="vehicleId" className="block text-sm font-medium text-gray-700">
+              Araç Seçimi
+            </label>
+            {vehicles.length === 0 ? (
+              <div className="mt-1">
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-md">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.065-1.742 3.065H4.42c-1.532 0-2.493-1.731-1.743-3.065l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">
+                        Yolculuk oluşturmak için en az bir araca ihtiyacınız var.{' '}
+                        <Link href="/profile" className="font-medium text-blue-600 hover:text-blue-500 underline">
+                          Profil sayfama git
+                        </Link>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <select
+                id="vehicleId"
+                name="vehicleId"
+                value={formData.vehicleId}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 border ${
+                  validationErrors.vehicleId ? 'border-red-300' : 'border-gray-300'
+                }`}
+                required
+              >
+                <option value="">Araç seçin</option>
+                {vehicles.map(vehicle => (
+                  <option key={vehicle.id} value={vehicle.id}>
+                    {vehicle.brand} {vehicle.model} ({vehicle.vehicleType}) - {vehicle.seats} koltuk
+                    {vehicle.plate && ` - ${vehicle.plate}`}
+                  </option>
+                ))}
+              </select>
+            )}
+            {validationErrors.vehicleId && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.vehicleId}</p>
             )}
           </div>
 

@@ -46,7 +46,7 @@ export function useTrips(params?: TripsSearchParams): UseTripsReturn {
   useEffect(() => {
     fetchTrips();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params?.origin, params?.destination, params?.date]);
+  }, [params?.origin, params?.destination, params?.date, params?.minPrice, params?.maxPrice, params?.minSeats, params?.availableOnly]);
 
   const fetchTrips = async () => {
     setState({ status: 'loading' });
