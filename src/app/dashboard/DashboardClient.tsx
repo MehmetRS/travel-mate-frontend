@@ -11,7 +11,7 @@ import TripCard from '@/components/TripCard';
 export default function DashboardClient() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
-  const { profile, upcomingTrips, pastTrips, isLoading, error, refetch } = useDashboard();
+  const { profile, upcomingTrips, pastPendingTrips, pastCompletedTrips, isLoading, error, refetch } = useDashboard();
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -201,67 +201,110 @@ export default function DashboardClient() {
             </div>
 
             <div>
-              <p className="text-sm text-gray-500">Past Trips</p>
-              <p className="text-2xl font-bold text-green-600">{pastTrips.length}</p>
+              <p className="text-sm text-gray-500">Past Pending Trips</p>
+              <p className="text-2xl font-bold text-yellow-600">{pastPendingTrips.length}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Past Completed Trips</p>
+              <p className="text-2xl font-bold text-green-600">{pastCompletedTrips.length}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Trips Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Upcoming Trips */}
+      {/* Trips Sections - Three distinct sections as required */}
+      <div className="space-y-8">
+        {/* 1️⃣ Yaklaşan Yolculuklar (Upcoming Trips) */}
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
             <ClockIcon className="w-6 h-6 mr-2 text-blue-500" />
-            Upcoming Trips
+            Yaklaşan Yolculuklar
           </h2>
 
           {upcomingTrips.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">No upcoming trips found</p>
+              <p className="text-gray-500 mb-4">Henüz yaklaşan yolculuğunuz yok</p>
               <Link
                 href="/trips"
                 className="text-blue-500 hover:text-blue-600 underline"
               >
-                Search for trips
+                Yolculuk ara
               </Link>
             </div>
           ) : (
             <div className="space-y-4">
               {upcomingTrips.map(trip => (
-                <TripCard key={trip.id} trip={trip} />
+                <TripCard key={trip.id} trip={trip} status="upcoming" />
               ))}
             </div>
           )}
         </div>
 
-        {/* Past Trips */}
+        {/* 2️⃣ Geçmiş Yolculuklar (Tamamlanmamış) */}
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <CalendarIcon className="w-6 h-6 mr-2 text-green-500" />
-            Past Trips
+            <CalendarIcon className="w-6 h-6 mr-2 text-yellow-500" />
+            Geçmiş Yolculuklar (Tamamlanmamış)
           </h2>
 
-          {pastTrips.length === 0 ? (
+          {pastPendingTrips.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">No past trips found</p>
-              <Link
-                href="/trips"
-                className="text-blue-500 hover:text-blue-600 underline"
-              >
-                Search for trips
-              </Link>
+              <p className="text-gray-500 mb-4">Tamamlanmamış geçmiş yolculuğunuz yok</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {pastTrips.map(trip => (
-                <TripCard key={trip.id} trip={trip} />
+              {pastPendingTrips.map(trip => (
+                <TripCard key={trip.id} trip={trip} status="pending" />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 3️⃣ Tamamlanan Yolculuklar */}
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <CalendarIcon className="w-6 h-6 mr-2 text-green-500" />
+            Tamamlanan Yolculuklar
+          </h2>
+
+          {pastCompletedTrips.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">Tamamlanan yolculuğunuz yok</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {pastCompletedTrips.map(trip => (
+                <TripCard key={trip.id} trip={trip} status="completed" />
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Empty dashboard message if all sections are empty */}
+      {upcomingTrips.length === 0 && pastPendingTrips.length === 0 && pastCompletedTrips.length === 0 && (
+        <div className="text-center py-12 mt-8">
+          <div className="bg-blue-50 rounded-lg p-8 max-w-md mx-auto">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Hoş geldiniz!</h3>
+            <p className="text-gray-600 mb-6">Henüz hiç yolculuğunuz yok. Yeni yolculuklar keşfetmek veya oluşturmak için aşağıdaki bağlantıları kullanın.</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/trips"
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-center"
+              >
+                Yolculuk Ara
+              </Link>
+              <Link
+                href="/trips/create"
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-center"
+              >
+                Yolculuk Oluştur
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

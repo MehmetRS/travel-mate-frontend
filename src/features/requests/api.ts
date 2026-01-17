@@ -41,6 +41,14 @@ export const requestsApi = {
   },
 
   /**
+   * GET /requests/mine?tripId=:tripId
+   * AUTH REQUIRED - Get current user's request for a specific trip (as passenger)
+   */
+  getMyRequestForTrip: (tripId: string): Promise<TripRequestResponseDto | null> => {
+    return get<TripRequestResponseDto | null>(`/requests/mine?tripId=${tripId}`);
+  },
+
+  /**
    * PATCH /requests/:requestId
    * AUTH REQUIRED - Accept/reject/cancel request
    */

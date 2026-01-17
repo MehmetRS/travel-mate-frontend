@@ -2,20 +2,21 @@
  * useDashboard Hook
  *
  * Centralized dashboard data fetching and state management.
- * Handles profile, trips, and vehicles data.
+ * Uses /trips/dashboard as the single source of truth for trip visibility.
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
 import { dashboardApi } from '../api';
-import type { UserProfile, DashboardTripsParams } from '../api';
+import type { UserProfile, DashboardTripsResponse } from '../api';
 import type { TripResponseDto } from '@/lib/types/backend-contracts';
 
 interface DashboardState {
   profile: UserProfile | null;
   upcomingTrips: TripResponseDto[];
-  pastTrips: TripResponseDto[];
+  pastPendingTrips: TripResponseDto[];
+  pastCompletedTrips: TripResponseDto[];
   isLoading: boolean;
   error: string | null;
 }
@@ -24,7 +25,8 @@ export function useDashboard() {
   const [state, setState] = useState<DashboardState>({
     profile: null,
     upcomingTrips: [],
-    pastTrips: [],
+    pastPendingTrips: [],
+    pastCompletedTrips: [],
     isLoading: true,
     error: null,
   });
@@ -33,17 +35,17 @@ export function useDashboard() {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      // Fetch data in parallel
-      const [profile, upcomingTrips, pastTrips] = await Promise.all([
+      // Fetch data in parallel - use /trips/dashboard as single source of truth
+      const [profile, dashboardTrips] = await Promise.all([
         dashboardApi.getProfile(),
-        dashboardApi.getTrips({ upcoming: true, role: 'all' }),
-        dashboardApi.getTrips({ past: true, role: 'all' }),
+        dashboardApi.getDashboardTrips(),
       ]);
 
       setState({
         profile,
-        upcomingTrips,
-        pastTrips,
+        upcomingTrips: dashboardTrips.upcoming,
+        pastPendingTrips: dashboardTrips.past.pending,
+        pastCompletedTrips: dashboardTrips.past.completed,
         isLoading: false,
         error: null,
       });

@@ -25,6 +25,15 @@ export interface DashboardTripsParams {
   role?: 'driver' | 'passenger' | 'all';
 }
 
+// Dashboard trips response structure
+export interface DashboardTripsResponse {
+  upcoming: TripResponseDto[];
+  past: {
+    pending: TripResponseDto[];
+    completed: TripResponseDto[];
+  };
+}
+
 export const dashboardApi = {
   /**
    * GET /me
@@ -45,6 +54,7 @@ export const dashboardApi = {
   /**
    * GET /trips
    * AUTH REQUIRED - Get trips with filters
+   * @deprecated Use getDashboardTrips instead
    */
   getTrips: (params: DashboardTripsParams): Promise<TripResponseDto[]> => {
     const query = new URLSearchParams();
@@ -56,5 +66,14 @@ export const dashboardApi = {
     const path = queryString ? `/trips?${queryString}` : '/trips';
 
     return get<TripResponseDto[]>(path);
+  },
+
+  /**
+   * GET /trips/dashboard
+   * AUTH REQUIRED - Get user's dashboard trips grouped by status
+   * This is the single source of truth for dashboard trip visibility
+   */
+  getDashboardTrips: (): Promise<DashboardTripsResponse> => {
+    return get<DashboardTripsResponse>('/trips/dashboard');
   },
 };
