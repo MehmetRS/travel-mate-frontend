@@ -177,6 +177,13 @@ export default function DashboardClient() {
             >
               Create Trip
             </Link>
+
+            <Link
+              href="/profile"
+              className="block w-full text-center px-4 py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 transition-colors"
+            >
+              Profile
+            </Link>
           </div>
         </div>
 
