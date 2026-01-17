@@ -340,16 +340,19 @@ export default function CreateTripClient() {
           <div>
             <button
               type="button"
-              disabled={isLoading}
+              disabled={isLoading || !formData.vehicleId}
               onClick={handleSubmit}
               className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                isLoading
+                isLoading || !formData.vehicleId
                   ? 'bg-blue-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
               }`}
             >
               {isLoading ? 'Oluşturuluyor...' : 'Yolculuk Oluştur'}
             </button>
+            {!formData.vehicleId && (
+              <p className="mt-2 text-sm text-gray-500 text-center">Lütfen bir araç seçin</p>
+            )}
           </div>
         </div>
       </div>
