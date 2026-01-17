@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTrips } from '../hooks/useTrips';
 import TripList from '@/components/TripList';
 import TripCard from '@/components/TripCard';
@@ -39,6 +39,12 @@ export default function TripsSearchClient() {
   // Search state
   const [searchParams, setSearchParams] = useState<Record<string, any>>({});
   const { state, refetch } = useTrips(searchParams);
+
+  // Make filters reactive - trigger search whenever filters change
+  useEffect(() => {
+    const cleanFilters = buildCleanFilters();
+    setSearchParams(cleanFilters);
+  }, [origin, destination, date, minPrice, maxPrice, minSeats, availableOnly]);
 
   const handleSearch = () => {
     const cleanFilters = buildCleanFilters();
