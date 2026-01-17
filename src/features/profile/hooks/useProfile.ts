@@ -56,11 +56,25 @@ export function useProfile() {
     }
   };
 
-  const addVehicle = async (vehicleData: CreateVehicleDto) => {
+  const addVehicle = async (vehicleData: any) => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null, successMessage: null }));
 
-      const newVehicle = await profileApi.addVehicle(vehicleData);
+      // Transform frontend form data to backend API format
+      const payload = {
+        type: vehicleData.type,
+        brand: vehicleData.brand,
+        model: vehicleData.model,
+        seatCount: Number(vehicleData.seatCount),
+        licensePlate: vehicleData.licensePlate || undefined
+      };
+
+      // Remove undefined fields to match backend expectations
+      const cleanedPayload = Object.fromEntries(
+        Object.entries(payload).filter(([_, value]) => value !== undefined)
+      );
+
+      const newVehicle = await profileApi.addVehicle(cleanedPayload);
 
       setState(prev => ({
         ...prev,
@@ -71,7 +85,7 @@ export function useProfile() {
 
       return newVehicle;
     } catch (error) {
-      console.error('Failed to add vehicle:', error);
+      console.error('Create vehicle failed', error);
       setState(prev => ({
         ...prev,
         isLoading: false,

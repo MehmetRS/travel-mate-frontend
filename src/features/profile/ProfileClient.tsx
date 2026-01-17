@@ -38,11 +38,11 @@ export default function ProfileClient() {
   // Vehicle form state
   const [isAddingVehicle, setIsAddingVehicle] = useState(false);
   const [newVehicle, setNewVehicle] = useState({
-    vehicleType: '',
+    type: '',
     brand: '',
     model: '',
-    seats: 2,
-    plate: ''
+    seatCount: 2,
+    licensePlate: ''
   });
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export default function ProfileClient() {
     const { name, value } = e.target;
     setNewVehicle(prev => ({
       ...prev,
-      [name]: name === 'seats' ? parseInt(value) || 1 : value
+      [name]: name === 'seatCount' ? parseInt(value) || 1 : value
     }));
   };
 
@@ -135,11 +135,11 @@ export default function ProfileClient() {
       await addVehicle(newVehicle);
       setIsAddingVehicle(false);
       setNewVehicle({
-        vehicleType: '',
+        type: '',
         brand: '',
         model: '',
-        seats: 2,
-        plate: ''
+        seatCount: 2,
+        licensePlate: ''
       });
     } catch (error) {
       // Error is already handled by the hook
@@ -386,13 +386,13 @@ export default function ProfileClient() {
 
             <form onSubmit={handleAddVehicle} className="space-y-4">
               <div>
-                <label htmlFor="vehicleType" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
                   Vehicle Type
                 </label>
                 <select
-                  id="vehicleType"
-                  name="vehicleType"
-                  value={newVehicle.vehicleType}
+                  id="type"
+                  name="type"
+                  value={newVehicle.type}
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -400,8 +400,6 @@ export default function ProfileClient() {
                   <option value="">Select vehicle type</option>
                   <option value="CAR">Car</option>
                   <option value="VAN">Van</option>
-                  <option value="SUV">SUV</option>
-                  <option value="TRUCK">Truck</option>
                   <option value="MOTORCYCLE">Motorcycle</option>
                 </select>
               </div>
@@ -439,14 +437,14 @@ export default function ProfileClient() {
               </div>
 
               <div>
-                <label htmlFor="seats" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="seatCount" className="block text-sm font-medium text-gray-700 mb-1">
                   Seat Count
                 </label>
                 <input
                   type="number"
-                  id="seats"
-                  name="seats"
-                  value={newVehicle.seats}
+                  id="seatCount"
+                  name="seatCount"
+                  value={newVehicle.seatCount}
                   onChange={handleInputChange}
                   required
                   min="1"
@@ -456,14 +454,14 @@ export default function ProfileClient() {
               </div>
 
               <div>
-                <label htmlFor="plate" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="licensePlate" className="block text-sm font-medium text-gray-700 mb-1">
                   License Plate (optional)
                 </label>
                 <input
                   type="text"
-                  id="plate"
-                  name="plate"
-                  value={newVehicle.plate}
+                  id="licensePlate"
+                  name="licensePlate"
+                  value={newVehicle.licensePlate}
                   onChange={handleInputChange}
                   placeholder="e.g., 34ABC123"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"

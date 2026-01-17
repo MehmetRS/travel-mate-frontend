@@ -46,7 +46,7 @@ export const profileApi = {
    * POST /vehicles
    * AUTH REQUIRED - Add a new vehicle
    */
-  addVehicle: (vehicleData: CreateVehicleDto): Promise<VehicleDto> => {
+  addVehicle: (vehicleData: CreateVehicleDto | any): Promise<VehicleDto> => {
     return post<VehicleDto>('/vehicles', vehicleData);
   },
 
