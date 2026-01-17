@@ -51,7 +51,7 @@ export function useTrips(params?: TripsSearchParams): UseTripsReturn {
     setState({ status: 'loading' });
 
     try {
-      const data = await tripsApi.getAll(params);
+      const data = await tripsApi.getPublicTrips(params);
 
       if (data.length === 0) {
         setState({ status: 'empty' });
@@ -62,7 +62,7 @@ export function useTrips(params?: TripsSearchParams): UseTripsReturn {
       const message = isApiError(error)
         ? error.message
         : 'Failed to load trips';
-      
+
       setState({ status: 'error', error: message });
     }
   };
