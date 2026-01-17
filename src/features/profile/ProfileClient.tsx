@@ -347,8 +347,8 @@ export default function ProfileClient() {
                         {vehicle.brand} {vehicle.model}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {vehicle.vehicleType} • {vehicle.seats} seats
-                        {vehicle.plate && ` • ${vehicle.plate}`}
+                        {vehicle.type} • {vehicle.seatCount} seats
+                        {vehicle.licensePlate && ` • ${vehicle.licensePlate}`}
                       </p>
                     </div>
                   </div>

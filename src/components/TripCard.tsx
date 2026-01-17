@@ -57,7 +57,7 @@ export default function TripCard({ trip }: TripCardProps) {
           <div className="text-sm text-gray-600">
             {trip.driver.vehicle.brand} {trip.driver.vehicle.model}
             <span className="text-gray-400 mx-1">•</span>
-            {trip.driver.vehicle.vehicleType}
+            {trip.driver.vehicle.type}
           </div>
         )}
       </div>

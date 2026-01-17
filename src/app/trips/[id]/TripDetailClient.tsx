@@ -96,8 +96,8 @@ function TripDetailContent({
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Araç Bilgileri</h3>
                 <div className="text-gray-700">
                   <p>{trip.driver.vehicle.brand} {trip.driver.vehicle.model}</p>
-                  <p>{trip.driver.vehicle.vehicleType}</p>
-                  <p>{trip.driver.vehicle.seats} Koltuk</p>
+                  <p>{trip.driver.vehicle.type}</p>
+                  <p>{trip.driver.vehicle.seatCount} Koltuk</p>
                 </div>
               </div>
             )}

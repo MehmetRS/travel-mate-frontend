@@ -41,21 +41,21 @@ export interface MeResponse {
 
 export interface VehicleDto {
   id: string;
-  vehicleType: string;
+  type: string;
   brand: string;
   model: string;
-  seats: number;
-  plate?: string | null;
+  seatCount: number;
+  licensePlate?: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateVehicleDto {
-  vehicleType: string;
+  type: string;
   brand: string;
   model: string;
-  seats: number;
-  plate?: string | null;
+  seatCount: number;
+  licensePlate?: string | null;
 }
 
 export interface DriverDto {

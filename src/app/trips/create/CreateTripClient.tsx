@@ -302,8 +302,8 @@ export default function CreateTripClient() {
                 <option value="">Araç seçin</option>
                 {vehicles.map(vehicle => (
                   <option key={vehicle.id} value={vehicle.id}>
-                    {vehicle.brand} {vehicle.model} ({vehicle.vehicleType}) - {vehicle.seats} koltuk
-                    {vehicle.plate && ` - ${vehicle.plate}`}
+                    {vehicle.brand} {vehicle.model} ({vehicle.type}) - {vehicle.seatCount} koltuk
+                    {vehicle.licensePlate && ` - ${vehicle.licensePlate}`}
                   </option>
                 ))}
               </select>
