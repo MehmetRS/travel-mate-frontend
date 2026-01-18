@@ -65,7 +65,7 @@ export default function TripsSearchClient() {
   return (
     <main className="container mx-auto px-4 py-8">
       {/* Search Form */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-8">
+      <form className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-8" onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Origin</label>
@@ -149,19 +149,20 @@ export default function TripsSearchClient() {
         {/* Action Buttons */}
         <div className="flex gap-4 mt-4">
           <button
+            type="submit"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            onClick={handleSearch}
           >
             Search
           </button>
           <button
+            type="button"
             className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
             onClick={handleReset}
           >
             Reset
           </button>
         </div>
-      </div>
+      </form>
 
       {/* Results */}
       <div className="flex flex-col md:flex-row gap-8">
