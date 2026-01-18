@@ -1,19 +1,17 @@
 import { redirect } from 'next/navigation';
 import TripDetailClient from './TripDetailClient';
 
-export const dynamicParams = true;
+export const dynamic = 'force-dynamic';
 
-export default function Page({
+export default function TripDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  // Treat this as a PURE ROUTE WRAPPER
-  // If params.id is missing or falsy, immediately redirect to /trips
-  // Do NOT render TripDetailClient, do NOT show error UI
-  if (!params?.id) {
-    redirect('/trips');
-  }
-
-  return <TripDetailClient id={params.id} />;
+  return (
+    <div style={{ padding: 40 }}>
+      <h1>Trip Detail Works</h1>
+      <p>ID: {params.id}</p>
+    </div>
+  );
 }
