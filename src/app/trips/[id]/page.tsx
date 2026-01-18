@@ -1,9 +1,11 @@
-import TripDetailClient from './TripDetailClient';
+import TripDetailClient from "./TripDetailClient";
 
-export default function TripDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function TripDetailPage({ params }: PageProps) {
   return <TripDetailClient tripId={params.id} />;
 }
