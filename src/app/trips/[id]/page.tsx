@@ -7,5 +7,6 @@ interface PageProps {
 }
 
 export default function TripDetailPage({ params }: PageProps) {
+  console.log(">>> SERVER PAGE /trips/[id] RENDERED", params.id);
   return <TripDetailClient tripId={params.id} />;
 }
