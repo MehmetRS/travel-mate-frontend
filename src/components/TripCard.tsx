@@ -2,7 +2,6 @@
 
 import { TripResponseDto } from '@/lib/types/backend-contracts';
 import { StarIcon, CheckBadgeIcon } from '@heroicons/react/24/solid';
-import Link from 'next/link';
 
 interface TripCardProps {
   trip: TripResponseDto;
@@ -29,7 +28,7 @@ export default function TripCard({ trip, status = 'upcoming' }: TripCardProps) {
   const statusBadge = getStatusBadge();
 
   return (
-    <Link
+    <a
       href={`/trips/${trip.id}`}
       className={`block rounded-lg border p-4 mb-4 transition-colors hover:shadow-md cursor-pointer ${
         isFull ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100 hover:border-blue-200'
@@ -97,6 +96,6 @@ export default function TripCard({ trip, status = 'upcoming' }: TripCardProps) {
           {statusBadge.text}
         </span>
       </div>
-    </Link>
+    </a>
   );
 }
