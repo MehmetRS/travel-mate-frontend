@@ -104,7 +104,7 @@ export default function RegisterClient() {
       </div>
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        <p>Already have an account? <a href="/login" style={{ color: '#0070f3' }}>Login</a></p>
+        <p>Already have an account? <Link href="/login" style={{ color: '#0070f3' }}>Login</Link></p>
       </div>
     </div>
   );
