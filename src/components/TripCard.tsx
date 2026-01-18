@@ -3,6 +3,7 @@
 import { TripResponseDto } from '@/lib/types/backend-contracts';
 import { StarIcon, CheckBadgeIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface TripCardProps {
   trip: TripResponseDto;
@@ -11,6 +12,13 @@ interface TripCardProps {
 
 export default function TripCard({ trip, status = 'upcoming' }: TripCardProps) {
   const isFull = trip.isFull;
+  const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/trips/${trip.id}`);
+  };
 
   // Status badge text and colors
   const getStatusBadge = () => {
@@ -31,6 +39,7 @@ export default function TripCard({ trip, status = 'upcoming' }: TripCardProps) {
   return (
     <Link
       href={`/trips/${trip.id}`}
+      onClick={handleClick}
       className={`block rounded-lg border p-4 mb-4 transition-colors hover:shadow-md cursor-pointer ${
         isFull ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100 hover:border-blue-200'
       }`}
