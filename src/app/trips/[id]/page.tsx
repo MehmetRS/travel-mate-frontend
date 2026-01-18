@@ -9,9 +9,8 @@ export default function TripDetailPage({
   params: { id: string };
 }) {
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Trip Detail Works</h1>
-      <p>ID: {params.id}</p>
+    <div className="min-h-screen bg-gray-50">
+      <TripDetailClient id={params.id} />
     </div>
   );
 }

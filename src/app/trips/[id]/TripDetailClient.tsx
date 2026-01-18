@@ -57,31 +57,32 @@ function TripDetailContent({
   const { user } = useAuth();
   const now = new Date();
 
-  // Define explicit UI states
+  // Define explicit UI states - derived from backend data only
   const uiState = {
     isDriver: trip.driver.id === user?.id,
+    isPassenger: request !== null && request.requesterId === user?.id,
     hasReservation: request !== null,
     isPending: request?.status === RequestStatus.PENDING,
     isAccepted: request?.status === RequestStatus.ACCEPTED,
     isRejected: request?.status === RequestStatus.REJECTED,
     isCancelled: request?.status === RequestStatus.CANCELLED,
-    isTripCompleted: false, // Not available in current DTO, always false for now
+    isTripCompleted: false, // Backend doesn't provide this field, always false for now
     isTripPast: new Date(trip.departureDateTime) < now,
-    isFull: trip.isFull,
+    isTripFull: trip.availableSeats === 0,
   };
 
   // Determine status badge text and color
   const getStatusBadge = () => {
-    if (!uiState.hasReservation) {
-      return { text: "Rezervasyon Açık", color: "bg-blue-100 text-blue-800", emoji: "🟦" };
-    } else if (uiState.isPending) {
-      return { text: "Rezervasyon Beklemede", color: "bg-yellow-100 text-yellow-800", emoji: "🟨" };
-    } else if (uiState.isAccepted && !uiState.isTripPast) {
-      return { text: "Rezervasyon Onaylandı", color: "bg-green-100 text-green-800", emoji: "🟩" };
-    } else if (uiState.isAccepted && uiState.isTripPast && !uiState.isTripCompleted) {
-      return { text: "Yolculuk Tamamlanmayı Bekliyor", color: "bg-orange-100 text-orange-800", emoji: "🟧" };
-    } else if (uiState.isTripCompleted) {
+    if (uiState.isTripCompleted) {
       return { text: "Yolculuk Tamamlandı", color: "bg-green-100 text-green-800", emoji: "✅" };
+    } else if (uiState.isTripFull) {
+      return { text: "Dolu", color: "bg-red-100 text-red-800", emoji: "🚫" };
+    } else if (!uiState.hasReservation) {
+      return { text: "Upcoming", color: "bg-blue-100 text-blue-800", emoji: "🟦" };
+    } else if (uiState.isPending) {
+      return { text: "Beklemede", color: "bg-yellow-100 text-yellow-800", emoji: "⏳" };
+    } else if (uiState.isAccepted) {
+      return { text: "Onaylandı", color: "bg-green-100 text-green-800", emoji: "🟩" };
     }
     return { text: "Bilinmiyor", color: "bg-gray-100 text-gray-800", emoji: "❓" };
   };
@@ -100,7 +101,7 @@ function TripDetailContent({
         </div>
 
         {/* Trip Summary Section */}
-        <div className={`rounded-lg border p-6 mb-6 ${uiState.isFull ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100'}`}>
+        <div className={`rounded-lg border p-6 mb-6 ${uiState.isTripFull ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100'}`}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center space-x-3 mb-2">
@@ -117,10 +118,10 @@ function TripDetailContent({
                   </span>
                 </div>
                 <div>
-                  {uiState.isFull ? (
+                  {uiState.isTripFull ? (
                     <span className="text-red-500 font-medium">DOLU</span>
                   ) : (
-                    <span><span className="font-medium">{trip.availableSeats}</span> koltuk müsait</span>
+                    <span><span className="font-medium">{trip.availableSeats}</span> / {trip.totalSeats} koltuk müsait</span>
                   )}
                 </div>
               </div>
@@ -226,7 +227,7 @@ function TripDetailContent({
         {/* Action Buttons - Strict matrix based on uiState */}
         <div className="mt-6 space-y-4">
           {/* Passenger: No reservation & not driver & not full */}
-          {!uiState.hasReservation && !uiState.isDriver && !uiState.isFull && (
+          {!uiState.hasReservation && !uiState.isDriver && !uiState.isTripFull && (
             <div className="rounded-lg border p-6 bg-white">
               <h2 className="text-lg font-semibold mb-4">Rezervasyon İste</h2>
               <div className="flex items-center gap-4 mb-4">
@@ -250,13 +251,9 @@ function TripDetailContent({
                   <button
                     onClick={() => onRequestReservation(bookingSeats)}
                     disabled={isRequesting}
-                    className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                      isRequesting
-                        ? 'bg-blue-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
+                    className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${isRequesting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                   >
-                    {isRequesting ? 'İstek Gönderiliyor...' : 'Rezervasyon İste'}
+                    {isRequesting ? 'İstek Gönderiliyor...' : '➕ Rezervasyon İste'}
                   </button>
                 </div>
               </div>
@@ -270,16 +267,16 @@ function TripDetailContent({
           {uiState.hasReservation && uiState.isPending && !uiState.isDriver && (
             <div className="rounded-lg border p-6 bg-white">
               <div className="flex gap-4">
+                <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                  <span className="mr-2">⏳</span>
+                  <span>Beklemede</span>
+                </div>
                 <button
                   onClick={onCancelReservation}
                   disabled={isCancelling}
-                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                    isCancelling
-                      ? 'bg-red-400 cursor-not-allowed'
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isCancelling ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
                 >
-                  {isCancelling ? 'İptal Ediliyor...' : 'İptal Et'}
+                  {isCancelling ? 'İptal Ediliyor...' : '❌ İsteği İptal Et'}
                 </button>
               </div>
               {requestError && (
@@ -295,17 +292,23 @@ function TripDetailContent({
                 <button
                   onClick={onCancelReservation}
                   disabled={isCancelling}
-                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                    isCancelling
-                      ? 'bg-red-400 cursor-not-allowed'
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isCancelling ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
                 >
-                  {isCancelling ? 'İptal Ediliyor...' : 'Rezervasyonu İptal Et'}
+                  {isCancelling ? 'İptal Ediliyor...' : '❌ Rezervasyonu İptal Et'}
+                </button>
+                <button
+                  onClick={onChat}
+                  disabled={isStartingChat}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isStartingChat ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {isStartingChat ? 'Sohbet Başlatılıyor...' : '💬 Sohbete Git'}
                 </button>
               </div>
               {requestError && (
                 <div className="text-red-500 text-sm mt-2">{requestError}</div>
+              )}
+              {chatError && (
+                <div className="text-red-500 text-sm mt-2">{chatError}</div>
               )}
             </div>
           )}
@@ -317,17 +320,23 @@ function TripDetailContent({
                 <button
                   onClick={onConfirmTripCompleted}
                   disabled={isConfirming}
-                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                    isConfirming
-                      ? 'bg-green-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isConfirming ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                 >
-                  {isConfirming ? 'Onaylanıyor...' : 'Yolculuk Yapıldı'}
+                  {isConfirming ? 'Onaylanıyor...' : '✅ Yolculuk Yapıldı'}
+                </button>
+                <button
+                  onClick={onChat}
+                  disabled={isStartingChat}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isStartingChat ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {isStartingChat ? 'Sohbet Başlatılıyor...' : '💬 Sohbete Git'}
                 </button>
               </div>
               {requestError && (
                 <div className="text-red-500 text-sm mt-2">{requestError}</div>
+              )}
+              {chatError && (
+                <div className="text-red-500 text-sm mt-2">{chatError}</div>
               )}
             </div>
           )}
@@ -339,24 +348,16 @@ function TripDetailContent({
                 <button
                   onClick={onAcceptReservation}
                   disabled={isAccepting}
-                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                    isAccepting
-                      ? 'bg-green-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isAccepting ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                 >
-                  {isAccepting ? 'Kabul Ediliyor...' : 'Kabul Et'}
+                  {isAccepting ? 'Kabul Ediliyor...' : '✅ Kabul Et'}
                 </button>
                 <button
                   onClick={onRejectReservation}
                   disabled={isRejecting}
-                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                    isRejecting
-                      ? 'bg-red-400 cursor-not-allowed'
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isRejecting ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
                 >
-                  {isRejecting ? 'Reddediliyor...' : 'Reddet'}
+                  {isRejecting ? 'Reddediliyor...' : '❌ Reddet'}
                 </button>
               </div>
               {requestError && (
@@ -372,17 +373,23 @@ function TripDetailContent({
                 <button
                   onClick={onCancelReservation}
                   disabled={isCancelling}
-                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                    isCancelling
-                      ? 'bg-red-400 cursor-not-allowed'
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isCancelling ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
                 >
-                  {isCancelling ? 'İptal Ediliyor...' : 'Rezervasyonu İptal Et'}
+                  {isCancelling ? 'İptal Ediliyor...' : '❌ Rezervasyonu İptal Et'}
+                </button>
+                <button
+                  onClick={onChat}
+                  disabled={isStartingChat}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isStartingChat ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {isStartingChat ? 'Sohbet Başlatılıyor...' : '💬 Sohbete Git'}
                 </button>
               </div>
               {requestError && (
                 <div className="text-red-500 text-sm mt-2">{requestError}</div>
+              )}
+              {chatError && (
+                <div className="text-red-500 text-sm mt-2">{chatError}</div>
               )}
             </div>
           )}
@@ -394,45 +401,48 @@ function TripDetailContent({
                 <button
                   onClick={onConfirmTripCompleted}
                   disabled={isConfirming}
-                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                    isConfirming
-                      ? 'bg-green-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isConfirming ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                 >
-                  {isConfirming ? 'Onaylanıyor...' : 'Yolculuk Yapıldı'}
+                  {isConfirming ? 'Onaylanıyor...' : '✅ Yolculuk Yapıldı'}
+                </button>
+                <button
+                  onClick={onChat}
+                  disabled={isStartingChat}
+                  className={`flex-1 px-4 py-2 rounded-md text-white font-medium transition-colors ${isStartingChat ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {isStartingChat ? 'Sohbet Başlatılıyor...' : '💬 Sohbete Git'}
                 </button>
               </div>
               {requestError && (
                 <div className="text-red-500 text-sm mt-2">{requestError}</div>
               )}
+              {chatError && (
+                <div className="text-red-500 text-sm mt-2">{chatError}</div>
+              )}
             </div>
           )}
 
-          {/* Chat Section - Always available when authenticated */}
-          <div className="rounded-lg border p-6 bg-white">
-            <h2 className="text-lg font-semibold mb-4">Sohbet Başlat</h2>
-            <button
-              onClick={onChat}
-              disabled={isStartingChat}
-              className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${
-                isStartingChat
-                  ? 'bg-green-400 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {isStartingChat ? 'Sohbet Başlatılıyor...' : 'Sohbet Başlat'}
-            </button>
-            {chatError && (
-              <div className="text-red-500 text-sm mt-2">{chatError}</div>
-            )}
-          </div>
+          {/* Chat button - Only shown when reservation is accepted */}
+          {uiState.hasReservation && uiState.isAccepted && (
+            <div className="rounded-lg border p-6 bg-white">
+              <button
+                onClick={onChat}
+                disabled={isStartingChat}
+                className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${isStartingChat ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+              >
+                {isStartingChat ? 'Sohbet Başlatılıyor...' : '💬 Sohbete Git'}
+              </button>
+              {chatError && (
+                <div className="text-red-500 text-sm mt-2">{chatError}</div>
+              )}
+            </div>
+          )}
         </div>
 
-        {uiState.isFull && !uiState.hasReservation && (
+        {uiState.isTripFull && !uiState.hasReservation && (
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
-              This trip is full.
+              Bu yolculuk dolu
             </p>
           </div>
         )}
