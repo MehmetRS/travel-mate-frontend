@@ -459,6 +459,14 @@ interface TripDetailClientProps {
 }
 
 export default function TripDetailClient({ tripId }: TripDetailClientProps) {
+  console.log("Fetching trip with id:", tripId);
+
+  // Visible mount indicator - ALWAYS visible at the very top
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const { state: tripState, refetch: refetchTrip } = useTrip(tripId);
@@ -706,9 +714,12 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   if (tripState.status === 'loading' || requestState.status === 'loading') {
     return (
       <div className="container mx-auto px-4 py-8">
+        <div className="p-4 text-red-600 font-bold">
+          TripDetailClient mounted – tripId: {tripId}
+        </div>
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yolculuk detayları yükleniyor...</p>
+          <p className="text-gray-600">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -718,9 +729,12 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   if (tripState.status === 'notFound') {
     return (
       <div className="container mx-auto px-4 py-8">
+        <div className="p-4 text-red-600 font-bold">
+          TripDetailClient mounted – tripId: {tripId}
+        </div>
         <div className="text-center py-8">
           <ExclamationTriangleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Yolculuk Bulunamadı</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Trip bulunamadı</h2>
           <p className="text-gray-600">İstenen yolculuk bulunamadı.</p>
         </div>
       </div>
@@ -731,6 +745,9 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   if (tripState.status === 'error' && tripState.error.includes('forbidden')) {
     return (
       <div className="container mx-auto px-4 py-8">
+        <div className="p-4 text-red-600 font-bold">
+          TripDetailClient mounted – tripId: {tripId}
+        </div>
         <div className="text-center py-8 text-red-500">
           <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Erişim Engellendi</h2>
@@ -744,6 +761,9 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   if (tripState.status === 'error') {
     return (
       <div className="container mx-auto px-4 py-8">
+        <div className="p-4 text-red-600 font-bold">
+          TripDetailClient mounted – tripId: {tripId}
+        </div>
         <div className="text-center py-8 text-red-500">
           <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Hata Oluştu</h2>
@@ -761,30 +781,46 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
     const request = requestState.status === 'success' ? requestState.data : null;
 
     return (
-      <TripDetailContent
-        trip={tripState.data}
-        request={request}
-        tripId={tripId}
-        onRequestReservation={handleRequestReservation}
-        onCancelReservation={handleCancelReservation}
-        onAcceptReservation={handleAcceptReservation}
-        onRejectReservation={handleRejectReservation}
-        onConfirmTripCompleted={handleConfirmTripCompleted}
-        onChat={handleStartChat}
-        isRequesting={isRequesting}
-        isCancelling={isCancelling}
-        isAccepting={isAccepting}
-        isRejecting={isRejecting}
-        isConfirming={isConfirming}
-        isStartingChat={isStartingChat}
-        requestError={requestError}
-        chatError={chatError}
-        bookingSeats={bookingSeats}
-        onBookingSeatsChange={setBookingSeats}
-      />
+      <>
+        <div className="p-4 text-red-600 font-bold">
+          TripDetailClient mounted – tripId: {tripId}
+        </div>
+        <TripDetailContent
+          trip={tripState.data}
+          request={request}
+          tripId={tripId}
+          onRequestReservation={handleRequestReservation}
+          onCancelReservation={handleCancelReservation}
+          onAcceptReservation={handleAcceptReservation}
+          onRejectReservation={handleRejectReservation}
+          onConfirmTripCompleted={handleConfirmTripCompleted}
+          onChat={handleStartChat}
+          isRequesting={isRequesting}
+          isCancelling={isCancelling}
+          isAccepting={isAccepting}
+          isRejecting={isRejecting}
+          isConfirming={isConfirming}
+          isStartingChat={isStartingChat}
+          requestError={requestError}
+          chatError={chatError}
+          bookingSeats={bookingSeats}
+          onBookingSeatsChange={setBookingSeats}
+        />
+      </>
     );
   }
 
-  // Fallback - should not reach here
-  return null;
+  // Fallback - should not reach here but render something visible
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="p-4 text-red-600 font-bold">
+        TripDetailClient mounted – tripId: {tripId}
+      </div>
+      <div className="text-center py-8 text-red-500">
+        <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Bilinmeyen Durum</h2>
+        <p className="text-sm">Trip detayları için bilinmeyen bir durum oluştu</p>
+      </div>
+    </div>
+  );
 }
