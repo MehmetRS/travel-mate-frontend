@@ -4,6 +4,12 @@ export enum MessageType {
   LOCATION = 'LOCATION',
 }
 
+export enum ChatStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -16,6 +22,7 @@ export interface Message {
 export interface ChatResponse {
   exists: boolean;
   chatId?: string;
+  status?: ChatStatus;
   messages?: Message[];
 }
 

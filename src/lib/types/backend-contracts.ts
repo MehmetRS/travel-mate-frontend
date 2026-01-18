@@ -109,6 +109,16 @@ export enum RequestStatus {
   CANCELLED = 'CANCELLED',
 }
 
+// ============================================================================
+// CHAT STATUS TYPES (NEW)
+// ============================================================================
+
+export enum ChatStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+}
+
 export interface RequesterDto {
   id: string;
   name: string;
@@ -160,6 +170,7 @@ export interface MessageDto {
 export interface ChatResponseDto {
   exists: boolean;
   chatId?: string;
+  status?: ChatStatus;
   messages?: MessageDto[];
 }
 

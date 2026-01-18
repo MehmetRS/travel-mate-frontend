@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { chatApi } from '@/lib/api/chat';
-import { ChatResponse } from '@/types/chat';
+import { ChatResponse, ChatStatus } from '@/types/chat';
 import { ApiError, UnauthorizedError } from '@/lib/api/errors';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
@@ -120,6 +120,21 @@ export default function ChatPanel({ tripId }: ChatPanelProps) {
 
   if (!chatData?.exists) {
     return <ChatStart onStartChat={handleStartChat} />;
+  }
+
+  // Check if chat status is ACCEPTED (new backend rule)
+  if (chatData.status !== ChatStatus.ACCEPTED) {
+    return (
+      <div className="p-4 text-center text-yellow-600">
+        <p>Sohbet henüz kabul edilmedi. Lütfen bekleyin.</p>
+        {chatData.status === ChatStatus.PENDING && (
+          <p className="text-sm mt-2">Sohbet isteği beklemede</p>
+        )}
+        {chatData.status === ChatStatus.REJECTED && (
+          <p className="text-sm mt-2 text-red-500">Sohbet isteği reddedildi</p>
+        )}
+      </div>
+    );
   }
 
   return (

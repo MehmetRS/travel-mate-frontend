@@ -10,7 +10,7 @@ import { tripsApi } from '@/lib/api/trips';
 import { requestsApi } from '@/features/requests/api';
 import { chatApi } from '@/lib/api/chat';
 import { ApiError, UnauthorizedError, ForbiddenError, ConflictError } from '@/lib/api/errors';
-import { RequestStatus, RequestType } from '@/lib/types/backend-contracts';
+import { RequestStatus, RequestType, ChatStatus } from '@/lib/types/backend-contracts';
 import type { TripDetailResponseDto, TripRequestResponseDto } from '@/lib/types/backend-contracts';
 
 interface TripDetailContentProps {
@@ -232,7 +232,7 @@ function TripDetailContent({
           {/* Passenger: No reservation & not driver & not full */}
           {!uiState.hasReservation && !uiState.isDriver && !uiState.isTripFull && (
             <div className="rounded-lg border p-6 bg-white">
-              <h2 className="text-lg font-semibold mb-4">Rezervasyon İste</h2>
+              <h2 className="text-lg font-semibold mb-4">Rezervasyon ve Chat İste</h2>
               <div className="flex items-center gap-4 mb-4">
                 <div>
                   <label htmlFor="seats" className="block text-sm font-medium text-gray-700 mb-1">
@@ -260,8 +260,20 @@ function TripDetailContent({
                   </button>
                 </div>
               </div>
+              <div className="mt-4">
+                <button
+                  onClick={onChat}
+                  disabled={isStartingChat}
+                  className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${isStartingChat ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {isStartingChat ? 'Chat Gönderiliyor...' : '💬 Chat İste'}
+                </button>
+              </div>
               {requestError && (
-                <div className="text-red-500 text-sm">{requestError}</div>
+                <div className="text-red-500 text-sm mt-2">{requestError}</div>
+              )}
+              {chatError && (
+                <div className="text-red-500 text-sm mt-2">{chatError}</div>
               )}
             </div>
           )}
@@ -272,7 +284,7 @@ function TripDetailContent({
               <div className="flex gap-4">
                 <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                   <span className="mr-2">⏳</span>
-                  <span>Beklemede</span>
+                  <span>Rezervasyon beklemede</span>
                 </div>
                 <button
                   onClick={onCancelReservation}
@@ -424,22 +436,6 @@ function TripDetailContent({
               )}
             </div>
           )}
-
-          {/* Chat button - Only shown when reservation is accepted */}
-          {uiState.hasReservation && uiState.isAccepted && (
-            <div className="rounded-lg border p-6 bg-white">
-              <button
-                onClick={onChat}
-                disabled={isStartingChat}
-                className={`w-full px-4 py-2 rounded-md text-white font-medium transition-colors ${isStartingChat ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
-              >
-                {isStartingChat ? 'Sohbet Başlatılıyor...' : '💬 Sohbete Git'}
-              </button>
-              {chatError && (
-                <div className="text-red-500 text-sm mt-2">{chatError}</div>
-              )}
-            </div>
-          )}
         </div>
 
         {uiState.isTripFull && !uiState.hasReservation && (
@@ -515,14 +511,14 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       }
 
       if (err instanceof ForbiddenError) {
-        setRequestError('Cannot request reservation for your own trip');
+        setRequestError('Kendi yolculuğunuza rezervasyon isteği gönderemezsiniz');
       } else if (err instanceof ConflictError) {
-        setRequestError('Not enough available seats or already have a request');
+        setRequestError('Yeterli müsait koltuk yok veya zaten bir isteğiniz var');
       } else {
         setRequestError(
           err instanceof ApiError
             ? err.message
-            : 'Failed to send reservation request'
+            : 'Rezervasyon isteği gönderilemedi'
         );
       }
     } finally {
@@ -703,7 +699,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       setChatError(
         err instanceof ApiError
           ? err.message
-          : 'Failed to start chat'
+          : 'Sohbet başlatılamadı'
       );
     } finally {
       setIsStartingChat(false);
