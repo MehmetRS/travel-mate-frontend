@@ -16,6 +16,7 @@ import type { TripDetailResponseDto, TripRequestResponseDto } from '@/lib/types/
 interface TripDetailContentProps {
   trip: TripDetailResponseDto;
   request: TripRequestResponseDto | null;
+  tripId: string;
   onRequestReservation: (seats: number) => Promise<void>;
   onCancelReservation: () => Promise<void>;
   onAcceptReservation: () => Promise<void>;
@@ -37,6 +38,7 @@ interface TripDetailContentProps {
 function TripDetailContent({
   trip,
   request,
+  tripId,
   onRequestReservation,
   onCancelReservation,
   onAcceptReservation,
@@ -92,6 +94,7 @@ function TripDetailContent({
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
+        <p className="text-red-500">Trip Detail Client Mounted: {tripId}</p>
         {/* Status Badge */}
         <div className="mb-6">
           <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${statusBadge.color}`}>
@@ -452,14 +455,14 @@ function TripDetailContent({
 }
 
 interface TripDetailClientProps {
-  id: string;
+  tripId: string;
 }
 
-export default function TripDetailClient({ id }: TripDetailClientProps) {
+export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
-  const { state: tripState, refetch: refetchTrip } = useTrip(id);
-  const { state: requestState, refetch: refetchRequest } = useTripRequest(id);
+  const { state: tripState, refetch: refetchTrip } = useTrip(tripId);
+  const { state: requestState, refetch: refetchRequest } = useTripRequest(tripId);
 
   const [bookingSeats, setBookingSeats] = useState(1);
   const [isRequesting, setIsRequesting] = useState(false);
@@ -479,7 +482,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
 
   const handleRequestReservation = async (seats: number) => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${id}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -487,7 +490,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       setIsRequesting(true);
       setRequestError(null);
 
-      await requestsApi.create(id, {
+      await requestsApi.create(tripId, {
         type: RequestType.BOOKING,
         seatsRequested: seats
       });
@@ -499,7 +502,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       console.error('Failed to create reservation request:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${id}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -521,7 +524,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
 
   const handleCancelReservation = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${id}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -541,7 +544,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       console.error('Failed to cancel reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${id}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -557,7 +560,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
 
   const handleAcceptReservation = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${id}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -577,7 +580,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       console.error('Failed to accept reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${id}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -593,7 +596,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
 
   const handleRejectReservation = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${id}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -613,7 +616,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       console.error('Failed to reject reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${id}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -629,7 +632,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
 
   const handleConfirmTripCompleted = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${id}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -649,7 +652,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       console.error('Failed to confirm trip completion:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${id}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -665,7 +668,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
 
   const handleStartChat = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${id}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -674,18 +677,18 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       setChatError(null);
 
       // Create chat request
-      await chatApi.createMessage(id, {
+      await chatApi.createMessage(tripId, {
         content: 'Hello, I would like to chat about this trip'
       });
 
       // Redirect to chat page or show success
-      router.push(`/trips/${id}/chat`);
+      router.push(`/trips/${tripId}/chat`);
 
     } catch (err) {
       console.error('Failed to start chat:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${id}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -761,6 +764,7 @@ export default function TripDetailClient({ id }: TripDetailClientProps) {
       <TripDetailContent
         trip={tripState.data}
         request={request}
+        tripId={tripId}
         onRequestReservation={handleRequestReservation}
         onCancelReservation={handleCancelReservation}
         onAcceptReservation={handleAcceptReservation}
