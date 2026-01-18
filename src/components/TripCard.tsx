@@ -27,74 +27,73 @@ export default function TripCard({ trip, status = 'upcoming' }: TripCardProps) {
   const statusBadge = getStatusBadge();
 
   return (
-    <Link href={`/trips/${trip.id}`} className="block">
-      <div
-        className={`rounded-lg border p-4 mb-4 transition-colors hover:shadow-md ${
-          isFull ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100 hover:border-blue-200'
-        }`}
-      >
-        {/* Header: From -> To */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex-1">
-            <div className="flex items-center space-x-2">
-              <span className="font-medium">{trip.origin}</span>
-              <span className="text-gray-400">→</span>
-              <span className="font-medium">{trip.destination}</span>
-            </div>
-            <div className="text-sm text-gray-500">
-              {new Date(trip.departureDateTime).toLocaleDateString('tr-TR')} - {new Date(trip.departureDateTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-            </div>
+    <Link
+      href={`/trips/${trip.id}`}
+      className={`block rounded-lg border p-4 mb-4 transition-colors hover:shadow-md cursor-pointer ${
+        isFull ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100 hover:border-blue-200'
+      }`}
+    >
+      {/* Header: From -> To */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <span className="font-medium">{trip.origin}</span>
+            <span className="text-gray-400">→</span>
+            <span className="font-medium">{trip.destination}</span>
           </div>
-          <div className="text-lg font-semibold text-blue-600">
-            {trip.price} ₺
+          <div className="text-sm text-gray-500">
+            {new Date(trip.departureDateTime).toLocaleDateString('tr-TR')} - {new Date(trip.departureDateTime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+        </div>
+        <div className="text-lg font-semibold text-blue-600">
+          {trip.price} ₺
+        </div>
+      </div>
+
+      {/* Driver Info */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+            {trip.driver.name.charAt(0)}
+          </div>
+          <div>
+            <div className="flex items-center space-x-1">
+              <span className="font-medium">{trip.driver.name}</span>
+              {trip.driver.isVerified && (
+                <CheckBadgeIcon className="w-4 h-4 text-blue-500" />
+              )}
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <StarIcon className="w-4 h-4 text-yellow-400 mr-1" />
+              <span>{trip.driver.rating.toFixed(1)}</span>
+            </div>
           </div>
         </div>
 
-        {/* Driver Info */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-              {trip.driver.name.charAt(0)}
-            </div>
-            <div>
-              <div className="flex items-center space-x-1">
-                <span className="font-medium">{trip.driver.name}</span>
-                {trip.driver.isVerified && (
-                  <CheckBadgeIcon className="w-4 h-4 text-blue-500" />
-                )}
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <StarIcon className="w-4 h-4 text-yellow-400 mr-1" />
-                <span>{trip.driver.rating.toFixed(1)}</span>
-              </div>
-            </div>
+        {/* Vehicle Info */}
+        {trip.driver.vehicle && (
+          <div className="text-sm text-gray-600">
+            {trip.driver.vehicle.brand} {trip.driver.vehicle.model}
+            <span className="text-gray-400 mx-1">•</span>
+            {trip.driver.vehicle.type}
           </div>
+        )}
+      </div>
 
-          {/* Vehicle Info */}
-          {trip.driver.vehicle && (
-            <div className="text-sm text-gray-600">
-              {trip.driver.vehicle.brand} {trip.driver.vehicle.model}
-              <span className="text-gray-400 mx-1">•</span>
-              {trip.driver.vehicle.type}
-            </div>
+      {/* Status Badge and Seats */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm">
+          {isFull ? (
+            <span className="text-red-500 font-medium">DOLU</span>
+          ) : (
+            <span>
+              <span className="font-medium">{trip.availableSeats}</span> koltuk müsait
+            </span>
           )}
         </div>
-
-        {/* Status Badge and Seats */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm">
-            {isFull ? (
-              <span className="text-red-500 font-medium">DOLU</span>
-            ) : (
-              <span>
-                <span className="font-medium">{trip.availableSeats}</span> koltuk müsait
-              </span>
-            )}
-          </div>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadge.bgColor} ${statusBadge.textColor}`}>
-            {statusBadge.text}
-          </span>
-        </div>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadge.bgColor} ${statusBadge.textColor}`}>
+          {statusBadge.text}
+        </span>
       </div>
     </Link>
   );
