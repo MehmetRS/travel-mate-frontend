@@ -1,4 +1,4 @@
-import TripDetailClient from "./TripDetailClient";
+import TripDetailClient from "../TripDetailClient";
 
 interface PageProps {
   params: {
