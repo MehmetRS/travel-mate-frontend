@@ -508,7 +508,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
 
   const handleRequestReservation = async (seats: number) => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${tripId}`);
+      router.push(`/login?returnUrl=/trip/${tripId}`);
       return;
     }
 
@@ -528,7 +528,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to create reservation request:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${tripId}`);
+        router.push(`/login?returnUrl=/trip/${tripId}`);
         return;
       }
 
@@ -550,7 +550,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
 
   const handleCancelReservation = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${tripId}`);
+      router.push(`/login?returnUrl=/trip/${tripId}`);
       return;
     }
 
@@ -570,7 +570,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to cancel reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${tripId}`);
+        router.push(`/login?returnUrl=/trip/${tripId}`);
         return;
       }
 
@@ -586,7 +586,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
 
   const handleAcceptReservation = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${tripId}`);
+      router.push(`/login?returnUrl=/trip/${tripId}`);
       return;
     }
 
@@ -606,7 +606,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to accept reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${tripId}`);
+        router.push(`/login?returnUrl=/trip/${tripId}`);
         return;
       }
 
@@ -622,7 +622,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
 
   const handleRejectReservation = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${tripId}`);
+      router.push(`/login?returnUrl=/trip/${tripId}`);
       return;
     }
 
@@ -642,7 +642,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to reject reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${tripId}`);
+        router.push(`/login?returnUrl=/trip/${tripId}`);
         return;
       }
 
@@ -658,7 +658,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
 
   const handleConfirmTripCompleted = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${tripId}`);
+      router.push(`/login?returnUrl=/trip/${tripId}`);
       return;
     }
 
@@ -678,7 +678,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to confirm trip completion:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${tripId}`);
+        router.push(`/login?returnUrl=/trip/${tripId}`);
         return;
       }
 
@@ -694,7 +694,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
 
   const handleStartChat = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trips/${tripId}`);
+      router.push(`/login?returnUrl=/trip/${tripId}`);
       return;
     }
 
@@ -708,13 +708,13 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       });
 
       // Redirect to chat page or show success
-      router.push(`/trips/${tripId}/chat`);
+      router.push(`/trip/${tripId}/chat`);
 
     } catch (err) {
       console.error('Failed to start chat:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trips/${tripId}`);
+        router.push(`/login?returnUrl=/trip/${tripId}`);
         return;
       }
 
