@@ -30,7 +30,7 @@ export default function TripCard({ trip, status = 'upcoming' }: TripCardProps) {
 
   return (
     <Link
-      href={`/trips/${trip.id}`}
+      href={`/trip/${trip.id}`}
       className={`block rounded-lg border p-4 mb-4 transition-colors hover:shadow-md cursor-pointer ${
         isFull ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100 hover:border-blue-200'
       }`}
