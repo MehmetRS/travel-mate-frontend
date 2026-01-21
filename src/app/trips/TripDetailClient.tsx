@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { StarIcon, CheckBadgeIcon, ClockIcon, MapPinIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
-import { useTrips } from '@/features/trips/hooks/useTrips';
 import { useTripRequest } from '@/features/requests/hooks/useTripRequest';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { tripsApi } from '@/lib/api/trips';
@@ -455,40 +454,30 @@ interface TripDetailClientProps {
 }
 
 export default function TripDetailClient({ tripId }: TripDetailClientProps) {
-  console.log("Fetching trip with id:", tripId);
-
-  // Visible mount indicator - ALWAYS visible at the very top
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
-  const { state: tripsState, refetch: refetchTrips } = useTrips();
   const { state: requestState, refetch: refetchRequest } = useTripRequest(tripId);
 
-  // Find the specific trip from the trips list
-  const trip = tripsState.status === 'success'
-    ? tripsState.data.find(trip => trip.id === tripId)
-    : null;
+  // Read trip data from URL parameters
+  const tripDataParam = searchParams.get('tripData');
+  let trip: TripResponseDto | null = null;
 
-  // Create a trip state object similar to the old useTrip hook
-  const tripState = {
-    status: tripsState.status === 'loading' ? 'loading' :
-           trip ? 'success' :
-           tripsState.status === 'success' ? 'notFound' :
-           tripsState.status,
-    data: trip,
-    error: tripsState.status === 'error' ? tripsState.error : null
-  };
-
-  // Log the resolved trip for debugging
-  useEffect(() => {
-    if (trip) {
-      console.log("Resolved trip:", trip);
+  if (tripDataParam) {
+    try {
+      const decodedTripData = decodeURIComponent(atob(tripDataParam));
+      trip = JSON.parse(decodedTripData) as TripResponseDto;
+    } catch (error) {
+      console.error('Failed to parse trip data from URL:', error);
     }
-  }, [trip]);
+  }
+
+  // Create a trip state object
+  const tripState = {
+    status: trip ? 'success' : 'notFound',
+    data: trip,
+    error: trip ? null : 'Trip data not found in navigation state'
+  };
 
   const [bookingSeats, setBookingSeats] = useState(1);
   const [isRequesting, setIsRequesting] = useState(false);
@@ -522,7 +511,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       });
 
       // Refresh data after creating request
-      await Promise.all([refetchTrips(), refetchRequest()]);
+      await refetchRequest();
 
     } catch (err) {
       console.error('Failed to create reservation request:', err);
@@ -564,7 +553,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       await requestsApi.update(request.id, { action: 'CANCEL' });
 
       // Refresh data after cancellation
-      await Promise.all([refetchTrips(), refetchRequest()]);
+      await refetchRequest();
 
     } catch (err) {
       console.error('Failed to cancel reservation:', err);
@@ -600,7 +589,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       await requestsApi.update(request.id, { action: 'ACCEPT' });
 
       // Refresh data after acceptance
-      await Promise.all([refetchTrips(), refetchRequest()]);
+      await refetchRequest();
 
     } catch (err) {
       console.error('Failed to accept reservation:', err);
@@ -636,7 +625,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       await requestsApi.update(request.id, { action: 'REJECT' });
 
       // Refresh data after rejection
-      await Promise.all([refetchTrips(), refetchRequest()]);
+      await refetchRequest();
 
     } catch (err) {
       console.error('Failed to reject reservation:', err);
@@ -672,7 +661,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Refresh data after confirmation
-      await Promise.all([refetchTrips(), refetchRequest()]);
+      await refetchRequest();
 
     } catch (err) {
       console.error('Failed to confirm trip completion:', err);
@@ -752,8 +741,8 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
         </div>
         <div className="text-center py-8">
           <ExclamationTriangleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Trip bulunamadı</h2>
-          <p className="text-gray-600">İstenen yolculuk bulunamadı.</p>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Yolculuk bulunamadı</h2>
+          <p className="text-gray-600">Bu yolculuk sadece arama ekranından açılabilir.</p>
         </div>
       </div>
     );
