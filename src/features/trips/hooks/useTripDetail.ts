@@ -1,11 +1,8 @@
 /**
  * useTripDetail Hook
  *
- * Fetches a single trip by ID with fallback logic.
- * Implementation:
- * 1. First tries to fetch via GET /trips/:id/public
- * 2. If that fails, falls back to useTrips() list filtering
- * 3. Only shows "not found" if both methods fail
+ * Fetches a single trip by ID using ONLY public trips data.
+ * Single source of truth: GET /trips/public
  *
  * PUBLIC DATA - no auth required
  */
@@ -13,7 +10,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTrips } from './useTrips';
 import { tripsApi } from '../api';
 import type { TripDetailResponseDto, TripResponseDto } from '@/lib/types/backend-contracts';
 import { isApiError } from '@/lib/api/api-errors';
@@ -46,66 +42,41 @@ interface UseTripDetailReturn {
 
 export function useTripDetail(tripId: string): UseTripDetailReturn {
   const [state, setState] = useState<TripDetailState>({ status: 'idle' });
-  const { trips: allTrips, isLoading: isTripsLoading, isSuccess: isTripsSuccess } = useTrips();
 
   useEffect(() => {
     fetchTripDetail();
-  }, [tripId, isTripsSuccess]);
+  }, [tripId]);
 
   const fetchTripDetail = async () => {
     setState({ status: 'loading' });
 
     try {
-      // Step 1: Try to fetch directly via public endpoint
-      const tripDetail = await tripsApi.getPublicTripById(tripId);
+      // Step 1: Fetch ALL public trips
+      const publicTrips = await tripsApi.getPublicTrips();
 
-      if (tripDetail) {
+      // Step 2: Find the specific trip by ID
+      const foundTrip = publicTrips.find(trip => trip.id === tripId);
+
+      if (foundTrip) {
+        // Convert TripResponseDto to TripDetailResponseDto
+        const tripDetail: TripDetailResponseDto = {
+          ...foundTrip,
+          createdAt: new Date().toISOString() // Add createdAt field for compatibility
+        };
         setState({ status: 'success', data: tripDetail });
         return;
       }
-    } catch (error) {
-      // If direct fetch fails, we'll try the fallback
-      console.log('Direct trip fetch failed, trying fallback:', error);
-    }
 
-    // Step 2: Fallback to filtering from trips list
-    // Only proceed with fallback if we have trips data available
-    if (isTripsSuccess && allTrips.length > 0) {
-      try {
-        const foundTrip = allTrips.find(trip => trip.id === tripId);
-
-        if (foundTrip) {
-          // Convert TripResponseDto to TripDetailResponseDto
-          const tripDetail: TripDetailResponseDto = {
-            ...foundTrip,
-            createdAt: new Date().toISOString() // Add createdAt field for compatibility
-          };
-          setState({ status: 'success', data: tripDetail });
-          return;
-        }
-      } catch (fallbackError) {
-        const message = isApiError(fallbackError)
-          ? fallbackError.message
-          : 'Failed to load trip details';
-
-        setState({ status: 'error', error: message });
-        return;
-      }
-    }
-
-    // Step 3: If we get here, we need to check if we should set notFound
-    // Only set notFound if:
-    // 1. Primary API call failed AND
-    // 2. Fallback data is available but trip wasn't found in it
-    // If fallback data is not available yet (isTripsSuccess is false), we don't set notFound
-    // The useEffect will re-run when isTripsSuccess changes, giving us another chance
-
-    if (isTripsSuccess) {
-      // Fallback data is available but trip wasn't found
+      // Step 3: If we get here, the request succeeded but trip wasn't found
       setState({ status: 'notFound' });
+
+    } catch (error) {
+      const message = isApiError(error)
+        ? error.message
+        : 'Failed to load trip details';
+
+      setState({ status: 'error', error: message });
     }
-    // If isTripsSuccess is false, we don't set notFound yet
-    // The useEffect dependency on isTripsSuccess will trigger a re-run when data is available
   };
 
   // Convenience properties
