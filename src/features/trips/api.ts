@@ -1,6 +1,6 @@
 /**
  * Trips API
- * 
+ *
  * All trip-related API calls.
  * Aligned with backend /trips endpoints.
  */
@@ -69,6 +69,14 @@ export const tripsApi = {
    */
   getById: (id: string): Promise<TripDetailResponseDto> => {
     return get<TripDetailResponseDto>(`/trips/${id}`, { skipAuth: true });
+  },
+
+  /**
+   * GET /trips/:id/public
+   * PUBLIC - no auth required
+   */
+  getPublicTripById: (id: string): Promise<TripDetailResponseDto> => {
+    return get<TripDetailResponseDto>(`/trips/${id}/public`, { skipAuth: true });
   },
 
   /**

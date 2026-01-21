@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { StarIcon, CheckBadgeIcon, ClockIcon, MapPinIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import { useTripRequest } from '@/features/requests/hooks/useTripRequest';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useTripDetail } from '@/features/trips/hooks/useTripDetail';
 import { tripsApi } from '@/lib/api/trips';
 import { requestsApi } from '@/features/requests/api';
 import { chatApi } from '@/lib/api/chat';
@@ -459,25 +460,16 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   const { isAuthenticated, user } = useAuth();
   const { state: requestState, refetch: refetchRequest } = useTripRequest(tripId);
 
-  // Read trip data from URL parameters
-  const tripDataParam = searchParams.get('tripData');
-  let trip: TripResponseDto | null = null;
-
-  if (tripDataParam) {
-    try {
-      const decodedTripData = decodeURIComponent(atob(tripDataParam));
-      trip = JSON.parse(decodedTripData) as TripResponseDto;
-    } catch (error) {
-      console.error('Failed to parse trip data from URL:', error);
-    }
-  }
-
-  // Create a trip state object
-  const tripState = {
-    status: trip ? 'success' : 'notFound',
-    data: trip,
-    error: trip ? null : 'Trip data not found in navigation state'
-  };
+  // Use the new useTripDetail hook with fallback logic
+  const {
+    state: tripState,
+    isLoading: isTripLoading,
+    isSuccess: isTripSuccess,
+    isNotFound: isTripNotFound,
+    isError: isTripError,
+    trip,
+    error: tripError
+  } = useTripDetail(tripId);
 
   const [bookingSeats, setBookingSeats] = useState(1);
   const [isRequesting, setIsRequesting] = useState(false);
@@ -718,7 +710,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   };
 
   // Loading State
-  if (tripState.status === 'loading' || requestState.status === 'loading') {
+  if (isTripLoading || requestState.status === 'loading') {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="p-4 text-red-600 font-bold">
@@ -732,8 +724,8 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
     );
   }
 
-  // Not Found State
-  if (tripState.status === 'notFound') {
+  // Not Found State - only show if both API and fallback failed
+  if (isTripNotFound) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="p-4 text-red-600 font-bold">
@@ -749,7 +741,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   }
 
   // Forbidden State (handled by backend)
-  if (tripState.status === 'error' && tripState.error?.includes('forbidden')) {
+  if (isTripError && tripError?.includes('forbidden')) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="p-4 text-red-600 font-bold">
@@ -765,7 +757,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   }
 
   // Error State
-  if (tripState.status === 'error') {
+  if (isTripError) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="p-4 text-red-600 font-bold">
@@ -775,8 +767,8 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
           <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Hata Oluştu</h2>
           <p className="text-sm">Yolculuk detayları yüklenirken hata oluştu.</p>
-          {tripState.error && (
-            <p className="text-xs mt-2 text-red-400">{tripState.error}</p>
+          {tripError && (
+            <p className="text-xs mt-2 text-red-400">{tripError}</p>
           )}
         </div>
       </div>
@@ -784,11 +776,8 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   }
 
   // Success State
-  if (tripState.status === 'success') {
+  if (isTripSuccess) {
     const request = requestState.status === 'success' ? requestState.data : null;
-
-    // Convert TripResponseDto to TripDetailResponseDto by adding createdAt field
-    const tripDetailData = tripState.data as TripDetailResponseDto;
 
     return (
       <>
@@ -796,7 +785,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
           TripDetailClient mounted – tripId: {tripId}
         </div>
         <TripDetailContent
-          trip={tripDetailData}
+          trip={trip!}
           request={request}
           tripId={tripId}
           onRequestReservation={handleRequestReservation}
