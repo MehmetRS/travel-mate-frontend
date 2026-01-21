@@ -69,8 +69,9 @@ export function useTripDetail(tripId: string): UseTripDetailReturn {
     }
 
     // Step 2: Fallback to filtering from trips list
-    try {
-      if (isTripsSuccess && allTrips.length > 0) {
+    // Only proceed with fallback if we have trips data available
+    if (isTripsSuccess && allTrips.length > 0) {
+      try {
         const foundTrip = allTrips.find(trip => trip.id === tripId);
 
         if (foundTrip) {
@@ -82,18 +83,29 @@ export function useTripDetail(tripId: string): UseTripDetailReturn {
           setState({ status: 'success', data: tripDetail });
           return;
         }
+      } catch (fallbackError) {
+        const message = isApiError(fallbackError)
+          ? fallbackError.message
+          : 'Failed to load trip details';
+
+        setState({ status: 'error', error: message });
+        return;
       }
-
-      // If we get here, neither method found the trip
-      setState({ status: 'notFound' });
-
-    } catch (fallbackError) {
-      const message = isApiError(fallbackError)
-        ? fallbackError.message
-        : 'Failed to load trip details';
-
-      setState({ status: 'error', error: message });
     }
+
+    // Step 3: If we get here, we need to check if we should set notFound
+    // Only set notFound if:
+    // 1. Primary API call failed AND
+    // 2. Fallback data is available but trip wasn't found in it
+    // If fallback data is not available yet (isTripsSuccess is false), we don't set notFound
+    // The useEffect will re-run when isTripsSuccess changes, giving us another chance
+
+    if (isTripsSuccess) {
+      // Fallback data is available but trip wasn't found
+      setState({ status: 'notFound' });
+    }
+    // If isTripsSuccess is false, we don't set notFound yet
+    // The useEffect dependency on isTripsSuccess will trigger a re-run when data is available
   };
 
   // Convenience properties
