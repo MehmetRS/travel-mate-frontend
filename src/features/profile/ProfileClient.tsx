@@ -45,12 +45,23 @@ export default function ProfileClient() {
     licensePlate: ''
   });
 
+  // Handle missing_vehicle query param
+  const searchParams = new URLSearchParams(window.location.search);
+  const isMissingVehicle = searchParams.get('reason') === 'missing_vehicle';
+
   useEffect(() => {
     // Redirect if not authenticated
     if (!authLoading && !isAuthenticated) {
       router.push('/login');
     }
   }, [authLoading, isAuthenticated, router]);
+
+  // Automatically open vehicle form when redirected from Create Trip
+  useEffect(() => {
+    if (isMissingVehicle && vehicles.length === 0) {
+      setIsAddingVehicle(true);
+    }
+  }, [isMissingVehicle, vehicles.length]);
 
   // Show loading state
   if (authLoading || isLoading) {
@@ -116,10 +127,6 @@ export default function ProfileClient() {
   if (!isAuthenticated || !user || !profile) {
     return null;
   }
-
-  // Handle missing_vehicle query param
-  const searchParams = new URLSearchParams(window.location.search);
-  const isMissingVehicle = searchParams.get('reason') === 'missing_vehicle';
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
