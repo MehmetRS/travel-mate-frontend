@@ -3,19 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { StarIcon, CheckBadgeIcon, ClockIcon, MapPinIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
-import { useTripRequest } from '@/features/requests/hooks/useTripRequest';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTripDetail } from '@/features/trips/hooks/useTripDetail';
 import { tripsApi } from '@/lib/api/trips';
-import { requestsApi } from '@/features/requests/api';
-import { chatApi } from '@/lib/api/chat';
+import { tripReservationsApi } from '@/lib/api/trip-reservations';
+import { chatsApi } from '@/lib/api/chats';
 import { ApiError, UnauthorizedError, ForbiddenError, ConflictError } from '@/lib/api/errors';
-import { RequestStatus, RequestType, ChatStatus } from '@/lib/types/backend-contracts';
-import type { TripDetailResponseDto, TripRequestResponseDto, TripResponseDto } from '@/lib/types/backend-contracts';
+import { ChatStatus } from '@/lib/types/backend-contracts';
+import type { TripDetailResponseDto, TripResponseDto } from '@/lib/types/backend-contracts';
+import type { TripReservationResponseDto } from '@/lib/api/trip-reservations';
+import type { ChatResponseDto } from '@/lib/api/chats';
 
 interface TripDetailContentProps {
   trip: TripDetailResponseDto;
-  request: TripRequestResponseDto | null;
+  reservation: TripReservationResponseDto | null;
   tripId: string;
   onRequestReservation: (seats: number) => Promise<void>;
   onCancelReservation: () => Promise<void>;
@@ -37,7 +38,7 @@ interface TripDetailContentProps {
 
 function TripDetailContent({
   trip,
-  request,
+  reservation,
   tripId,
   onRequestReservation,
   onCancelReservation,
@@ -62,12 +63,12 @@ function TripDetailContent({
   // Define explicit UI states - derived from backend data only
   const uiState = {
     isDriver: trip.driver.id === user?.id,
-    isPassenger: request !== null && request.requesterId === user?.id,
-    hasReservation: request !== null,
-    isPending: request?.status === RequestStatus.PENDING,
-    isAccepted: request?.status === RequestStatus.ACCEPTED,
-    isRejected: request?.status === RequestStatus.REJECTED,
-    isCancelled: request?.status === RequestStatus.CANCELLED,
+    isPassenger: reservation !== null && reservation.userId === user?.id,
+    hasReservation: reservation !== null,
+    isPending: reservation?.status === 'PENDING',
+    isAccepted: reservation?.status === 'ACCEPTED',
+    isRejected: reservation?.status === 'REJECTED',
+    isCancelled: reservation?.status === 'CANCELLED',
     isTripCompleted: false, // Backend doesn't provide this field, always false for now
     isTripPast: new Date(trip.departureDateTime) < now,
     isTripFull: trip.availableSeats === 0,
@@ -219,7 +220,7 @@ function TripDetailContent({
               <div className="flex justify-between">
                 <span className="text-gray-600">Oluşturulma tarihi:</span>
                 <span className="font-medium">
-                  {request?.createdAt ? new Date(request.createdAt).toLocaleString('tr-TR') : "Bilinmiyor"}
+                  {reservation?.createdAt ? new Date(reservation.createdAt).toLocaleString('tr-TR') : "Bilinmiyor"}
                 </span>
               </div>
             </div>
@@ -465,8 +466,18 @@ export default function TripDetailClient() {
   const [requestError, setRequestError] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
 
-  // Only call hooks if tripId exists
-  const { state: requestState, refetch: refetchRequest } = tripId ? useTripRequest(tripId) : { state: { status: 'idle' }, refetch: async () => {} };
+  // Only call hooks if tripId exists - TODO: Replace with useTripReservation hook
+  type ReservationState = 
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'success'; data: TripReservationResponseDto }
+    | { status: 'error'; error: string };
+  
+  const [reservationState, setReservationState] = useState<ReservationState>({ status: 'idle' });
+  const refetchReservation = async () => {
+    // TODO: Implement actual reservation fetching when backend is ready
+    console.log('TODO: Fetch reservation for trip', tripId);
+  };
 
   // Use the new useTripDetail hook with fallback logic - only if tripId exists
   const {
@@ -487,11 +498,11 @@ export default function TripDetailClient() {
     error: null
   };
 
-  // Reset error states when trip or request changes
+  // Reset error states when trip or reservation changes
   useEffect(() => {
     setRequestError(null);
     setChatError(null);
-  }, [tripState, requestState]);
+  }, [tripState, reservationState]);
 
   const handleRequestReservation = async (seats: number) => {
     if (!tripId) return;
@@ -505,16 +516,17 @@ export default function TripDetailClient() {
       setIsRequesting(true);
       setRequestError(null);
 
-      await requestsApi.create(tripId, {
-        type: RequestType.BOOKING,
-        seatsRequested: seats
+      // Create direct TripReservation - NO request/approval abstraction
+      await tripReservationsApi.create({
+        tripId: tripId,
+        seatCount: seats
       });
 
-      // Refresh data after creating request
-      await refetchRequest();
+      // Refresh data after creating reservation
+      await refetchReservation();
 
     } catch (err) {
-      console.error('Failed to create reservation request:', err);
+      console.error('Failed to create trip reservation:', err);
 
       if (err instanceof UnauthorizedError) {
         router.push(`/login?returnUrl=/trips/${tripId}`);
@@ -522,14 +534,14 @@ export default function TripDetailClient() {
       }
 
       if (err instanceof ForbiddenError) {
-        setRequestError('Kendi yolculuğunuza rezervasyon isteği gönderemezsiniz');
+        setRequestError('Kendi yolculuğunuza rezervasyon yapamazsınız');
       } else if (err instanceof ConflictError) {
-        setRequestError('Yeterli müsait koltuk yok veya zaten bir isteğiniz var');
+        setRequestError('Yeterli müsait koltuk yok veya zaten bir rezervasyonunuz var');
       } else {
         setRequestError(
           err instanceof ApiError
             ? err.message
-            : 'Rezervasyon isteği gönderilemedi'
+            : 'Rezervasyon oluşturulamadı'
         );
       }
     } finally {
@@ -545,17 +557,18 @@ export default function TripDetailClient() {
       return;
     }
 
-    const request = requestState.status === 'success' ? requestState.data : null;
-    if (!request) return;
+    const reservation = reservationState.status === 'success' ? reservationState.data : null;
+    if (!reservation) return;
 
     try {
       setIsCancelling(true);
       setRequestError(null);
 
-      await requestsApi.update(request.id, { action: 'CANCEL' });
+      // Cancel direct TripReservation - NO request/approval abstraction
+      await tripReservationsApi.cancel(reservation.id);
 
       // Refresh data after cancellation
-      await refetchRequest();
+      await refetchReservation();
 
     } catch (err) {
       console.error('Failed to cancel reservation:', err);
@@ -568,7 +581,7 @@ export default function TripDetailClient() {
       setRequestError(
         err instanceof ApiError
           ? err.message
-          : 'Failed to cancel reservation'
+          : 'Rezervasyon iptal edilemedi'
       );
     } finally {
       setIsCancelling(false);
@@ -583,17 +596,18 @@ export default function TripDetailClient() {
       return;
     }
 
-    const request = requestState.status === 'success' ? requestState.data : null;
-    if (!request) return;
+    const reservation = reservationState.status === 'success' ? reservationState.data : null;
+    if (!reservation) return;
 
     try {
       setIsAccepting(true);
       setRequestError(null);
 
-      await requestsApi.update(request.id, { action: 'ACCEPT' });
+      // Update direct TripReservation status - NO request/approval abstraction
+      await tripReservationsApi.update(reservation.id, { status: 'ACCEPTED' });
 
       // Refresh data after acceptance
-      await refetchRequest();
+      await refetchReservation();
 
     } catch (err) {
       console.error('Failed to accept reservation:', err);
@@ -606,7 +620,7 @@ export default function TripDetailClient() {
       setRequestError(
         err instanceof ApiError
           ? err.message
-          : 'Failed to accept reservation'
+          : 'Rezervasyon kabul edilemedi'
       );
     } finally {
       setIsAccepting(false);
@@ -621,17 +635,18 @@ export default function TripDetailClient() {
       return;
     }
 
-    const request = requestState.status === 'success' ? requestState.data : null;
-    if (!request) return;
+    const reservation = reservationState.status === 'success' ? reservationState.data : null;
+    if (!reservation) return;
 
     try {
       setIsRejecting(true);
       setRequestError(null);
 
-      await requestsApi.update(request.id, { action: 'REJECT' });
+      // Update direct TripReservation status - NO request/approval abstraction
+      await tripReservationsApi.update(reservation.id, { status: 'REJECTED' });
 
       // Refresh data after rejection
-      await refetchRequest();
+      await refetchReservation();
 
     } catch (err) {
       console.error('Failed to reject reservation:', err);
@@ -644,7 +659,7 @@ export default function TripDetailClient() {
       setRequestError(
         err instanceof ApiError
           ? err.message
-          : 'Failed to reject reservation'
+          : 'Rezervasyon reddedilemedi'
       );
     } finally {
       setIsRejecting(false);
@@ -669,7 +684,7 @@ export default function TripDetailClient() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Refresh data after confirmation
-      await refetchRequest();
+      await refetchReservation();
 
     } catch (err) {
       console.error('Failed to confirm trip completion:', err);
@@ -701,13 +716,17 @@ export default function TripDetailClient() {
       setIsStartingChat(true);
       setChatError(null);
 
-      // Create chat request
-      await chatApi.createMessage(tripId, {
-        content: 'Hello, I would like to chat about this trip'
+      // Create direct Chat - NO request/approval abstraction
+      const chat = await chatsApi.create({
+        tripId: tripId,
+        status: 'PENDING'
       });
 
+      // Add current user as member
+      await chatsApi.addMember(chat.id, user!.id, 'PASSENGER');
+
       // Redirect to chat page or show success
-      router.push(`/trips/${tripId}/chat`);
+      router.push(`/chats/${chat.id}`);
 
     } catch (err) {
       console.error('Failed to start chat:', err);
@@ -720,7 +739,7 @@ export default function TripDetailClient() {
       setChatError(
         err instanceof ApiError
           ? err.message
-          : 'Sohbet başlatılamadı'
+          : 'Sohbet oluşturulamadı'
       );
     } finally {
       setIsStartingChat(false);
@@ -742,7 +761,7 @@ export default function TripDetailClient() {
   }
 
   // If isLoading → show loading spinner
-  if (isTripLoading || requestState.status === 'loading') {
+  if (isTripLoading || reservationState.status === 'loading') {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-8">
@@ -784,12 +803,12 @@ export default function TripDetailClient() {
 
   // ONLY IF isSuccess → render Trip Detail UI
   if (isTripSuccess) {
-    const request = requestState.status === 'success' ? requestState.data : null;
+    const reservation = reservationState.status === 'success' ? reservationState.data : null;
 
     return (
       <TripDetailContent
         trip={trip!}
-        request={request ?? null}
+        reservation={reservation ?? null}
         tripId={tripId}
         onRequestReservation={handleRequestReservation}
         onCancelReservation={handleCancelReservation}

@@ -94,58 +94,13 @@ export interface CreateTripDto {
 }
 
 // ============================================================================
-// REQUEST TYPES (NEW)
-// ============================================================================
-
-export enum RequestType {
-  BOOKING = 'BOOKING',
-  CHAT = 'CHAT',
-}
-
-export enum RequestStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED',
-}
-
-// ============================================================================
-// CHAT STATUS TYPES (NEW)
+// CHAT STATUS TYPES
 // ============================================================================
 
 export enum ChatStatus {
   PENDING = 'PENDING',
   ACCEPTED = 'ACCEPTED',
   REJECTED = 'REJECTED',
-}
-
-export interface RequesterDto {
-  id: string;
-  name: string;
-  rating: number;
-  isVerified: boolean;
-}
-
-export interface CreateTripRequestDto {
-  type: RequestType;
-  seatsRequested?: number; // Required if type === BOOKING
-}
-
-export interface TripRequestResponseDto {
-  id: string;
-  tripId: string;
-  requesterId: string;
-  requester?: RequesterDto;
-  type: RequestType;
-  status: RequestStatus;
-  seatsRequested: number | null;
-  createdAt: string;
-  updatedAt: string;
-  chatId?: string | null; // Present after acceptance
-}
-
-export interface UpdateTripRequestDto {
-  action: 'ACCEPT' | 'REJECT' | 'CANCEL';
 }
 
 // ============================================================================
