@@ -30,14 +30,14 @@ export interface ChatMemberDto {
 
 export const chatsApi = {
   /**
-   * POST /chats
-   * AUTH REQUIRED - Create direct chat
-   * Maps 1:1 to Chat table
+   * POST /chats/request
+   * AUTH REQUIRED - Create chat request
+   * Maps to chat request workflow
    */
   create: (
     data: CreateChatDto
   ): Promise<ChatResponseDto> => {
-    return post<ChatResponseDto>('/chats', data);
+    return post<ChatResponseDto>('/chats/request', data);
   },
 
   /**

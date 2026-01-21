@@ -46,7 +46,7 @@ export default function ProfileClient() {
   });
 
   // Handle missing_vehicle query param
-  const searchParams = new URLSearchParams(window.location.search);
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const isMissingVehicle = searchParams.get('reason') === 'missing_vehicle';
 
   useEffect(() => {

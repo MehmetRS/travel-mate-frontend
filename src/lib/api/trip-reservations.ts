@@ -28,14 +28,14 @@ export interface UpdateTripReservationDto {
 
 export const tripReservationsApi = {
   /**
-   * POST /trip-reservations
+   * POST /reservations
    * AUTH REQUIRED - Create direct trip reservation
    * Maps 1:1 to TripReservation table
    */
   create: (
     data: CreateTripReservationDto
   ): Promise<TripReservationResponseDto> => {
-    return post<TripReservationResponseDto>('/trip-reservations', data);
+    return post<TripReservationResponseDto>('/reservations', data);
   },
 
   /**
