@@ -455,7 +455,6 @@ interface TripDetailClientProps {
 }
 
 export default function TripDetailClient({ tripId }: TripDetailClientProps) {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const { state: requestState, refetch: refetchRequest } = useTripRequest(tripId);
@@ -734,7 +733,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
         <div className="text-center py-8">
           <ExclamationTriangleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Yolculuk bulunamadı</h2>
-          <p className="text-gray-600">Bu yolculuk sadece arama ekranından açılabilir.</p>
+          <p className="text-gray-600">Aradığınız yolculuk bulunamadı.</p>
         </div>
       </div>
     );
