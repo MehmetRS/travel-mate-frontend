@@ -10,5 +10,5 @@ interface PageProps {
 }
 
 export default function TripDetailPage({ params }: PageProps) {
-  return <TripDetailClient tripId={params.id} />;
+  return <TripDetailClient />;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { StarIcon, CheckBadgeIcon, ClockIcon, MapPinIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import { useTripRequest } from '@/features/requests/hooks/useTripRequest';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -94,7 +94,6 @@ function TripDetailContent({
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <p className="text-red-500">Trip Detail Client Mounted: {tripId}</p>
         {/* Status Badge */}
         <div className="mb-6">
           <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${statusBadge.color}`}>
@@ -450,25 +449,11 @@ function TripDetailContent({
   );
 }
 
-interface TripDetailClientProps {
-  tripId: string;
-}
-
-export default function TripDetailClient({ tripId }: TripDetailClientProps) {
+export default function TripDetailClient() {
   const router = useRouter();
+  const params = useParams();
+  const tripId = params?.id as string;
   const { isAuthenticated, user } = useAuth();
-  const { state: requestState, refetch: refetchRequest } = useTripRequest(tripId);
-
-  // Use the new useTripDetail hook with fallback logic
-  const {
-    state: tripState,
-    isLoading: isTripLoading,
-    isSuccess: isTripSuccess,
-    isNotFound: isTripNotFound,
-    isError: isTripError,
-    trip,
-    error: tripError
-  } = useTripDetail(tripId);
 
   const [bookingSeats, setBookingSeats] = useState(1);
   const [isRequesting, setIsRequesting] = useState(false);
@@ -480,6 +465,28 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   const [requestError, setRequestError] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
 
+  // Only call hooks if tripId exists
+  const { state: requestState, refetch: refetchRequest } = tripId ? useTripRequest(tripId) : { state: { status: 'idle' }, refetch: async () => {} };
+
+  // Use the new useTripDetail hook with fallback logic - only if tripId exists
+  const {
+    state: tripState,
+    isLoading: isTripLoading,
+    isSuccess: isTripSuccess,
+    isNotFound: isTripNotFound,
+    isError: isTripError,
+    trip,
+    error: tripError
+  } = tripId ? useTripDetail(tripId) : {
+    state: { status: 'idle' },
+    isLoading: false,
+    isSuccess: false,
+    isNotFound: false,
+    isError: false,
+    trip: null,
+    error: null
+  };
+
   // Reset error states when trip or request changes
   useEffect(() => {
     setRequestError(null);
@@ -487,8 +494,10 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   }, [tripState, requestState]);
 
   const handleRequestReservation = async (seats: number) => {
+    if (!tripId) return;
+
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trip/${tripId}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -508,7 +517,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to create reservation request:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trip/${tripId}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -529,8 +538,10 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   };
 
   const handleCancelReservation = async () => {
+    if (!tripId) return;
+
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trip/${tripId}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -550,7 +561,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to cancel reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trip/${tripId}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -565,8 +576,10 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   };
 
   const handleAcceptReservation = async () => {
+    if (!tripId) return;
+
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trip/${tripId}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -586,7 +599,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to accept reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trip/${tripId}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -601,8 +614,10 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   };
 
   const handleRejectReservation = async () => {
+    if (!tripId) return;
+
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trip/${tripId}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -622,7 +637,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to reject reservation:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trip/${tripId}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -637,8 +652,10 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   };
 
   const handleConfirmTripCompleted = async () => {
+    if (!tripId) return;
+
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trip/${tripId}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -658,7 +675,7 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       console.error('Failed to confirm trip completion:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trip/${tripId}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -673,8 +690,10 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
   };
 
   const handleStartChat = async () => {
+    if (!tripId) return;
+
     if (!isAuthenticated) {
-      router.push(`/login?returnUrl=/trip/${tripId}`);
+      router.push(`/login?returnUrl=/trips/${tripId}`);
       return;
     }
 
@@ -688,13 +707,13 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
       });
 
       // Redirect to chat page or show success
-      router.push(`/trip/${tripId}/chat`);
+      router.push(`/trips/${tripId}/chat`);
 
     } catch (err) {
       console.error('Failed to start chat:', err);
 
       if (err instanceof UnauthorizedError) {
-        router.push(`/login?returnUrl=/trip/${tripId}`);
+        router.push(`/login?returnUrl=/trips/${tripId}`);
         return;
       }
 
@@ -708,13 +727,12 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
     }
   };
 
-  // Loading State
-  if (isTripLoading || requestState.status === 'loading') {
+  // STRICT RENDERING ORDER
+
+  // If !tripId → show loading spinner
+  if (!tripId) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="p-4 text-red-600 font-bold">
-          TripDetailClient mounted – tripId: {tripId}
-        </div>
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Yükleniyor...</p>
@@ -723,45 +741,22 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
     );
   }
 
-  // Not Found State - only show if both API and fallback failed
-  if (isTripNotFound) {
+  // If isLoading → show loading spinner
+  if (isTripLoading || requestState.status === 'loading') {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="p-4 text-red-600 font-bold">
-          TripDetailClient mounted – tripId: {tripId}
-        </div>
         <div className="text-center py-8">
-          <ExclamationTriangleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Yolculuk bulunamadı</h2>
-          <p className="text-gray-600">Aradığınız yolculuk bulunamadı.</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Yükleniyor...</p>
         </div>
       </div>
     );
   }
 
-  // Forbidden State (handled by backend)
-  if (isTripError && tripError?.includes('forbidden')) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="p-4 text-red-600 font-bold">
-          TripDetailClient mounted – tripId: {tripId}
-        </div>
-        <div className="text-center py-8 text-red-500">
-          <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Erişim Engellendi</h2>
-          <p className="text-sm">Bu yolculuğu görüntüleme izniniz yok.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error State
+  // If isError → show generic error
   if (isTripError) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="p-4 text-red-600 font-bold">
-          TripDetailClient mounted – tripId: {tripId}
-        </div>
         <div className="text-center py-8 text-red-500">
           <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Hata Oluştu</h2>
@@ -774,46 +769,51 @@ export default function TripDetailClient({ tripId }: TripDetailClientProps) {
     );
   }
 
-  // Success State
+  // If isNotFound → show "Yolculuk bulunamadı"
+  if (isTripNotFound) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-8">
+          <ExclamationTriangleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Yolculuk bulunamadı</h2>
+          <p className="text-gray-600">Aradığınız yolculuk bulunamadı.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ONLY IF isSuccess → render Trip Detail UI
   if (isTripSuccess) {
     const request = requestState.status === 'success' ? requestState.data : null;
 
     return (
-      <>
-        <div className="p-4 text-red-600 font-bold">
-          TripDetailClient mounted – tripId: {tripId}
-        </div>
-        <TripDetailContent
-          trip={trip!}
-          request={request}
-          tripId={tripId}
-          onRequestReservation={handleRequestReservation}
-          onCancelReservation={handleCancelReservation}
-          onAcceptReservation={handleAcceptReservation}
-          onRejectReservation={handleRejectReservation}
-          onConfirmTripCompleted={handleConfirmTripCompleted}
-          onChat={handleStartChat}
-          isRequesting={isRequesting}
-          isCancelling={isCancelling}
-          isAccepting={isAccepting}
-          isRejecting={isRejecting}
-          isConfirming={isConfirming}
-          isStartingChat={isStartingChat}
-          requestError={requestError}
-          chatError={chatError}
-          bookingSeats={bookingSeats}
-          onBookingSeatsChange={setBookingSeats}
-        />
-      </>
+      <TripDetailContent
+        trip={trip!}
+        request={request ?? null}
+        tripId={tripId}
+        onRequestReservation={handleRequestReservation}
+        onCancelReservation={handleCancelReservation}
+        onAcceptReservation={handleAcceptReservation}
+        onRejectReservation={handleRejectReservation}
+        onConfirmTripCompleted={handleConfirmTripCompleted}
+        onChat={handleStartChat}
+        isRequesting={isRequesting}
+        isCancelling={isCancelling}
+        isAccepting={isAccepting}
+        isRejecting={isRejecting}
+        isConfirming={isConfirming}
+        isStartingChat={isStartingChat}
+        requestError={requestError}
+        chatError={chatError}
+        bookingSeats={bookingSeats}
+        onBookingSeatsChange={setBookingSeats}
+      />
     );
   }
 
   // Fallback - should not reach here but render something visible
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="p-4 text-red-600 font-bold">
-        TripDetailClient mounted – tripId: {tripId}
-      </div>
       <div className="text-center py-8 text-red-500">
         <ExclamationTriangleIcon className="w-12 h-12 mx-auto mb-4" />
         <h2 className="text-xl font-semibold mb-2">Bilinmeyen Durum</h2>
