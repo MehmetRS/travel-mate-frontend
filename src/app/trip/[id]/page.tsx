@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import TripDetailClient from "@/app/trips/TripDetailClient";
 
 interface PageProps {
@@ -5,6 +8,5 @@ interface PageProps {
 }
 
 export default function TripDetailPage({ params }: PageProps) {
-  console.log("TRIP DETAIL PAGE PARAM:", params.id);
-  return <TripDetailClient tripId={params.id} />;
+  return <TripDetailClient />;
 }
